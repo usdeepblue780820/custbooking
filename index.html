@@ -11,9 +11,9 @@
     .no-wrap-label { white-space: nowrap; display:block; }
     .table-container { width:100%; overflow-x:auto; }
     th, td { white-space: nowrap; text-align: center; vertical-align: middle !important; }
-    .tag { display:inline-flex; align-items:center; padding:.25rem .75rem; margin:.25rem; font-size:.875rem; font-weight:500; background:#e5e7eb; color:#374151; border-radius:9999px; }
-    .tag .remove { margin-left:.5rem; cursor:pointer; font-weight:bold; color:#9ca3af; }
-    .tag .remove:hover { color:#374151; }
+    .tag { display:inline-flex; align-items:center; padding:.25rem .6rem; margin:.25rem; font-size:.875rem; font-weight:500; background:#e5e7eb; color:#374151; border-radius:9999px; }
+    .tag .remove { margin-left:.5rem; cursor:pointer; font-weight:bold; color:#9ca3af; padding-left:.4rem; padding-right:.2rem; }
+    .tag .remove:hover { color:#e11d48; }
     .status-tag { display:inline-flex; align-items:center; gap:0.5rem; padding:0.25rem 0.75rem; border-radius:9999px; font-weight:600; font-size:0.875rem; }
     .status-paw { display:inline-flex; width:16px; height:16px; align-items:center; justify-content:center; flex-shrink:0; }
     .status-pending { background:#f3f4f6; color:#374151; }
@@ -102,15 +102,15 @@
               <div class="product-grid mt-3">
                 <div class="product-field">
                   <label for="productAName" class="no-wrap-label text-sm font-medium text-gray-700">商品名稱</label>
-                  <input id="productAName" name="客訂商品A" type="text" required class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                  <input id="productAName" name="客訂商品1" type="text" required class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                 </div>
                 <div class="product-field">
                   <label for="productASpec" class="no-wrap-label text-sm font-medium text-gray-700">規格 / 重量</label>
-                  <input id="productASpec" name="A商品規格" type="text" class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                  <input id="productASpec" name="商品規格1" type="text" class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                 </div>
                 <div class="product-field">
                   <label for="productAQty" class="no-wrap-label text-sm font-medium text-gray-700">數量</label>
-                  <input id="productAQty" name="A數量" type="number" min="1" required class="mt-1 w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                  <input id="productAQty" name="數量1" type="number" min="1" required class="mt-1 w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                 </div>
               </div>
             </fieldset>
@@ -120,15 +120,15 @@
               <div class="product-grid mt-3">
                 <div class="product-field">
                   <label for="productBName" class="no-wrap-label text-sm font-medium text-gray-700">商品名稱</label>
-                  <input id="productBName" name="客訂商品B" type="text" class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                  <input id="productBName" name="客訂商品2" type="text" class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                 </div>
                 <div class="product-field">
                   <label for="productBSpec" class="no-wrap-label text-sm font-medium text-gray-700">規格 / 重量</label>
-                  <input id="productBSpec" name="B商品規格" type="text" class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                  <input id="productBSpec" name="商品規格2" type="text" class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                 </div>
                 <div class="product-field">
                   <label for="productBQty" class="no-wrap-label text-sm font-medium text-gray-700">數量</label>
-                  <input id="productBQty" name="B數量" type="number" min="1" class="mt-1 w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                  <input id="productBQty" name="數量2" type="number" min="1" class="mt-1 w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                 </div>
               </div>
             </fieldset>
@@ -200,29 +200,29 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700">客訂商品A</label>
+            <label class="block text-sm font-medium text-gray-700">客訂商品 A</label>
             <input id="editProductAName" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">A商品規格</label>
+            <label class="block text-sm font-medium text-gray-700">A 商品規格</label>
             <input id="editProductASpec" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700">A數量</label>
+            <label class="block text-sm font-medium text-gray-700">A 數量</label>
             <input id="editProductAQty" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700">客訂商品B</label>
+            <label class="block text-sm font-medium text-gray-700">客訂商品 B</label>
             <input id="editProductBName" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">B商品規格</label>
+            <label class="block text-sm font-medium text-gray-700">B 商品規格</label>
             <input id="editProductBSpec" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">B數量</label>
+            <label class="block text-sm font-medium text-gray-700">B 數量</label>
             <input id="editProductBQty" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
 
@@ -347,7 +347,8 @@
     function makeTagElem(dateStr){
       const div = document.createElement('div');
       div.className = 'tag';
-      div.innerHTML = `<span>${dateStr}</span><span class="remove" data-date="${dateStr}">&times;</span>`;
+      // 顯示 YYYY/MM/DD（dateStr 進來時已有格式化）
+      div.innerHTML = `<span class="tag-text">${dateStr}</span><span class="remove" data-date="${dateStr}" title="刪除此筆">&times;</span>`;
       return div;
     }
     function setupTagControls(addBtnId, stampBtnId, inputId, tagsContainerId, hiddenInputId){
@@ -357,31 +358,64 @@
       const container = document.getElementById(tagsContainerId);
       const hidden = document.getElementById(hiddenInputId);
       let items = [];
+
+      function updateHidden(){
+        if(hidden) hidden.value = items.join(', ');
+      }
       function render(){
         if(!container) return;
         container.innerHTML = '';
         items.forEach(d => container.appendChild(makeTagElem(d)));
-        if(hidden) hidden.value = items.join(', ');
+        updateHidden();
       }
       if(addBtn) addBtn.addEventListener('click', ()=>{
         const v = input.value;
-        if(v && !items.includes(v)){ items.push(v); items.sort(); input.value=''; render(); }
+        // input.value 為 "YYYY-MM-DD"，將它轉為 "YYYY/MM/DD" 顯示
+        if(v){
+          const dd = v.split('-');
+          const disp = `${dd[0]}/${pad(dd[1])}/${pad(dd[2])}`;
+          if(!items.includes(disp)){
+            items.push(disp); items.sort(); render();
+            input.value = '';
+          }
+        }
       });
       if(stampBtn) stampBtn.addEventListener('click', ()=>{
-        const v = formatTodayYYYYMMDDForInput();
-        if(!items.includes(v)){ items.push(v); items.sort(); render(); }
+        // stamp today's date
+        const iso = formatTodayYYYYMMDDForInput(); // YYYY-MM-DD
+        const dd = iso.split('-');
+        const disp = `${dd[0]}/${dd[1]}/${dd[2]}`;
+        if(!items.includes(disp)){ items.push(disp); items.sort(); render(); }
       });
       if(container) container.addEventListener('click', (e)=>{
         if(e.target.classList.contains('remove')){
           const d = e.target.dataset.date;
-          items = items.filter(x=>x!==d); render();
+          items = items.filter(x=>x!==d);
+          render();
         }
       });
       return {
-        setItems: (arr)=>{ items = (arr||[]).filter(Boolean); items.sort(); render(); },
-        getItems: ()=>items.slice()
+        setItems: (arr)=>{
+          items = (arr||[]).map(x=>{
+            // 把可能的 YYYY-MM-DD 或 ISO 或 YYYY/MM/DD 都統一成 YYYY/MM/DD
+            if(!x && x !== 0) return '';
+            const s = String(x).trim();
+            const m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+            if(m) return `${m[1]}/${pad(m[2])}/${pad(m[3])}`;
+            const iso = s.match(/(\d{4}-\d{2}-\d{2})/);
+            if(iso){
+              const p = iso[1].split('-');
+              return `${p[0]}/${pad(p[1])}/${pad(p[2])}`;
+            }
+            return s;
+          }).filter(Boolean);
+          items = Array.from(new Set(items)).sort();
+          render();
+        },
+        getItems: ()=> items.slice()
       };
     }
+
     const missedControls = setupTagControls('editAddMissed','editStampMissed','editMissedInput','editMissedTags','editMissedHidden');
     const notifyControls = setupTagControls('editAddNotify','editStampNotify','editNotifyInput','editNotifyTags','editNotifyHidden');
 
@@ -404,16 +438,17 @@
         const fd = new FormData(form);
         fd.set('建立日期', creationDateForSheet);
         fd.set('creationDate', new Date().toISOString());
-        fd.set('客訂商品A', document.getElementById('productAName').value || '');
-        fd.set('A商品規格', document.getElementById('productASpec').value || '');
-        fd.set('A數量', document.getElementById('productAQty').value || '');
-        fd.set('客訂商品B', document.getElementById('productBName').value || '');
-        fd.set('B商品規格', document.getElementById('productBSpec').value || '');
-        fd.set('B數量', document.getElementById('productBQty').value || '');
-        const missedHidden = document.getElementById('missedCallDates');
-        const notifyHidden = document.getElementById('notifyDates');
-        if(missedHidden) fd.set('未接電話日期', missedHidden.value || '');
-        if(notifyHidden) fd.set('通知日期', notifyHidden.value || '');
+        fd.set('客訂商品1', document.getElementById('productAName').value || '');
+        fd.set('商品規格1', document.getElementById('productASpec').value || '');
+        fd.set('數量1', document.getElementById('productAQty').value || '');
+        fd.set('客訂商品2', document.getElementById('productBName').value || '');
+        fd.set('商品規格2', document.getElementById('productBSpec').value || '');
+        fd.set('數量2', document.getElementById('productBQty').value || '');
+        // 若你有在 main form 放多筆未接/通知（此版主要在編輯 modal 使用），保留以下取得方式
+        const missedHiddenMain = document.getElementById('missedCallDates');
+        const notifyHiddenMain = document.getElementById('notifyDates');
+        if(missedHiddenMain) fd.set('未接電話日期', missedHiddenMain.value || '');
+        if(notifyHiddenMain) fd.set('通知日期', notifyHiddenMain.value || '');
 
         const resp = await fetch(SCRIPT_URL, { method:'POST', body: fd });
         const json = await resp.json();
@@ -436,8 +471,8 @@
 
     // ===== 資料顯示 / 編輯相關 =====
     let allOrders = [], tableHeadersOriginal = [], headerNameMap = {
-      '客訂商品A':'客訂商品A','A商品規格':'A商品規格','A數量':'數量A',
-      '客訂商品B':'客訂商品B','B商品規格':'B商品規格','B數量':'數量B'
+      '客訂商品1':'客訂商品 A','商品規格1':'商品規格 A','數量1':'數量 A',
+      '客訂商品2':'客訂商品 B','商品規格2':'商品規格 B','數量2':'數量 B'
     };
 
     function pawSVG(){ return `<svg class="status-paw" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M19.5 10.5c0 1.38-1.12 2.5-2.5 2.5s-2.5-1.12-2.5-2.5S15.62 8 17 8s2.5 1.12 2.5 2.5zM11.5 6c0 1.38-1.12 2.5-2.5 2.5S6.5 7.38 6.5 6 7.62 3.5 9 3.5 11.5 4.62 11.5 6zM6 13.5c0 1.38-1.12 2.5-2.5 2.5S1 14.88 1 13.5 2.12 11 3.5 11 6 12.12 6 13.5zM21 13.5c0 1.38-1.12 2.5-2.5 2.5S16 14.88 16 13.5 17.12 11 18.5 11 21 12.12 21 13.5zM12 12c-2 0-4 2-4 4 0 2 1.79 4 4 4s4-2 4-4c0-2-2-4-4-4z"/></svg>`; }
@@ -492,7 +527,6 @@
 
     function renderTableHeaders(displayHeaders){
       dataTableHeaders.innerHTML = '';
-      // 新增 '刪除' 欄位（放在編輯之後）
       const headers = ['狀態','編輯','刪除', ...displayHeaders];
       headers.forEach(h=>{
         const th = document.createElement('th');
@@ -508,7 +542,7 @@
       if(!orders || orders.length === 0){
         const tr = document.createElement('tr');
         const td = document.createElement('td');
-        td.colSpan = (tableHeadersOriginal.length || 0) + 3; // +3: 狀態,編輯,刪除
+        td.colSpan = (tableHeadersOriginal.length || 0) + 3;
         td.className = 'px-6 py-4 text-center text-gray-500';
         td.textContent = '沒有符合條件的資料。';
         tr.appendChild(td); dataTableBody.appendChild(tr); return;
@@ -532,7 +566,7 @@
         // 刪除按鈕（每列）
         const delTd = document.createElement('td'); delTd.className='px-6 py-4 text-center';
         const delBtn = document.createElement('button');
-        delBtn.type='button'; delBtn.className='inline-flex items-center gap-2 px-3 py-1 rounded-md text-sm'; 
+        delBtn.type='button'; delBtn.className='inline-flex items-center gap-2 px-3 py-1 rounded-md text-sm';
         delBtn.style.background = '#ef4444'; delBtn.style.color = 'white';
         delBtn.textContent = '刪除';
         delBtn.dataset.sheetRow = order['__row'];
@@ -588,20 +622,17 @@
 
     // 取得可比較的 timestamp（用於排序）
     function getOrderTimestamp(order){
-      // 優先使用 creationDate（ISO），其次使用建立日期 (YYYY/MM/DD)，最後回傳 0
       if(order && order.creationDate){
         const t = Date.parse(order.creationDate);
         if(!isNaN(t)) return t;
       }
       const val = order && (order['建立日期'] || order['creationDate'] || '');
       if(val){
-        // 嘗試解析 YYYY/MM/DD、YYYY-MM-DD 或 ISO
         const iso = String(val).match(/\d{4}[-\/]\d{2}[-\/]\d{2}/);
         if(iso){
           const d = new Date(iso[0].replace(/-/g,'/'));
           if(!isNaN(d)) return d.getTime();
         }
-        // 嘗試整字串 parse
         const d2 = new Date(String(val));
         if(!isNaN(d2)) return d2.getTime();
       }
@@ -621,14 +652,10 @@
         allOrders = data.rows || [];
         tableHeadersOriginal = data.headers || [];
 
-        // ===== 新增：排序邏輯 =====
-        // 1) 未結案（非 '結案'）排在前面；'結案' 排後面
-        // 2) 同組內依建立日期 (creationDate or 建立日期) 由新到舊排序
         allOrders.sort((a,b)=>{
           const aClosed = (getOrderStatus(a).text === '結案');
           const bClosed = (getOrderStatus(b).text === '結案');
-          if(aClosed !== bClosed) return aClosed ? 1 : -1; // aClosed true -> 放後面
-          // 同組 -> by timestamp desc
+          if(aClosed !== bClosed) return aClosed ? 1 : -1;
           const ta = getOrderTimestamp(a);
           const tb = getOrderTimestamp(b);
           return tb - ta;
@@ -636,7 +663,6 @@
 
         const displayHeaders = tableHeadersOriginal.map(h => headerNameMap[h] || h);
         renderTableHeaders(displayHeaders);
-        // 預設顯示前 50 筆（排序後）
         displayData(allOrders.slice(0,50));
         if(allOrders.length === 0){ noDataText.classList.remove('hidden'); dataTableContainer.classList.add('hidden'); }
         else { noDataText.classList.remove('hidden'); dataTableContainer.classList.remove('hidden'); }
@@ -654,17 +680,21 @@
       document.getElementById('editRowIndex').value = order['__row'];
       document.getElementById('editCustomerName').value = order['姓名'] || '';
       document.getElementById('editPhone').value = formatPhone(order['連絡電話'] || '');
-      document.getElementById('editProductAName').value = order['客訂商品A'] || '';
-      document.getElementById('editProductASpec').value = order['A商品規格'] || '';
-      document.getElementById('editProductAQty').value = order['A數量'] || '';
-      document.getElementById('editProductBName').value = order['客訂商品B'] || '';
-      document.getElementById('editProductBSpec').value = order['B商品規格'] || '';
-      document.getElementById('editProductBQty').value = order['B數量'] || '';
+      document.getElementById('editProductAName').value = order['客訂商品1'] || '';
+      document.getElementById('editProductASpec').value = order['商品規格1'] || '';
+      document.getElementById('editProductAQty').value = order['數量1'] || '';
+      document.getElementById('editProductBName').value = order['客訂商品2'] || '';
+      document.getElementById('editProductBSpec').value = order['商品規格2'] || '';
+      document.getElementById('editProductBQty').value = order['數量2'] || '';
 
       function toDateOnly(val){
         if(!val) return '';
-        const iso = (String(val).match(/\d{4}-\d{2}-\d{2}/) || [null])[0];
-        if(iso) return iso;
+        const iso = (String(val).match(/\d{4}-\d{2}-\d{2}|(\d{4}\/\d{2}\/\d{2})/) || [null])[0];
+        if(iso){
+          // 取得 YYYY-MM-DD 或 YYYY/MM/DD -> 轉成 input[type=date] 要的 YYYY-MM-DD
+          const arr = iso.indexOf('-') !== -1 ? iso.split('-') : iso.split('/');
+          return `${arr[0]}-${pad(arr[1])}-${pad(arr[2])}`;
+        }
         const parsed = new Date(val);
         if(isNaN(parsed)) return '';
         return `${parsed.getFullYear()}-${pad(parsed.getMonth()+1)}-${pad(parsed.getDate())}`;
@@ -675,13 +705,12 @@
       document.getElementById('editStoreTransfer').value = order['分店調撥'] || '';
       document.getElementById('editNotes').value = order['備註'] || order['說明'] || '';
 
+      // 對於未接/通知：利用我們的 controls setItems（這會自動 render 帶刪除）
       try{
-        const missed = (order['未接電話日期']||'').toString().split(/[,;，\s]+/).filter(Boolean);
-        const notify = (order['通知日期']||'').toString().split(/[,;，\s]+/).filter(Boolean);
-        const missedTags = document.getElementById('editMissedTags'); if(missedTags){ missedTags.innerHTML=''; missed.forEach(d=>{ const div=document.createElement('div'); div.className='tag'; div.textContent=d; missedTags.appendChild(div); }); }
-        const notifyTags = document.getElementById('editNotifyTags'); if(notifyTags){ notifyTags.innerHTML=''; notify.forEach(d=>{ const div=document.createElement('div'); div.className='tag'; div.textContent=d; notifyTags.appendChild(div); }); }
-        const missedHidden = document.getElementById('editMissedHidden'); if(missedHidden) missedHidden.value = missed.join(', ');
-        const notifyHidden = document.getElementById('editNotifyHidden'); if(notifyHidden) notifyHidden.value = notify.join(', ');
+        const missed = (order['未接電話日期']||'').toString().split(/[,;，\n]+/).map(s=>s.trim()).filter(Boolean);
+        const notify = (order['通知日期']||'').toString().split(/[,;，\n]+/).map(s=>s.trim()).filter(Boolean);
+        missedControls.setItems(missed);
+        notifyControls.setItems(notify);
       }catch(e){ console.warn(e); }
 
       editModalBackdrop.classList.remove('hidden');
@@ -699,12 +728,12 @@
         row: rowValue,
         '姓名': document.getElementById('editCustomerName').value || '',
         '連絡電話': document.getElementById('editPhone').value || '',
-        '客訂商品A': document.getElementById('editProductAName').value || '',
-        'A商品規格': document.getElementById('editProductASpec').value || '',
-        'A數量': document.getElementById('editProductAQty').value || '',
-        '客訂商品B': document.getElementById('editProductBName').value || '',
-        'B商品規格': document.getElementById('editProductBSpec').value || '',
-        'B數量': document.getElementById('editProductBQty').value || '',
+        '客訂商品1': document.getElementById('editProductAName').value || '',
+        '商品規格1': document.getElementById('editProductASpec').value || '',
+        '數量1': document.getElementById('editProductAQty').value || '',
+        '客訂商品2': document.getElementById('editProductBName').value || '',
+        '商品規格2': document.getElementById('editProductBSpec').value || '',
+        '數量2': document.getElementById('editProductBQty').value || '',
         '採購日期': document.getElementById('editPurchaseDate').value || '',
         '到貨日期': document.getElementById('editArrivalDate').value || '',
         '取走日期': document.getElementById('editPickupDate').value || '',
