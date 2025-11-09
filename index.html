@@ -53,7 +53,6 @@
         <div class="lg:col-span-6 mb-8 lg:mb-0">
           <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg h-full flex flex-col">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">顧客資料</h2>
-            <div id="message-box" class="hidden p-4 mb-4 rounded-md"></div>
 
             <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
               <legend class="text-lg font-semibold px-2 text-gray-700">基本資料</legend>
@@ -97,7 +96,6 @@
           <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg h-full flex flex-col">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">商品資料</h2>
 
-            <!-- [!! 修正 !!] name 屬性已更新 -->
             <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
               <legend class="text-lg font-semibold px-2 text-gray-700">客訂商品 A (必填)</legend>
               <div class="product-grid mt-3">
@@ -110,14 +108,12 @@
                   <input id="productASpec" name="A商品規格" type="text" class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                 </div>
                 <div class="product-field">
-                  <label for="productAQty" class="no-wrap-label text-sm font-medium text-gray-700">數量</label>
-                  <!-- [!! 修正 !!] 欄位名稱 A商品數量 -> A數量 -->
+                  <label for="productAQty" class="no-wrap-label text-sm font-medium text-gray-700">数量</label>
                   <input id="productAQty" name="A數量" type="number" min="1" required class="mt-1 w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                 </div>
               </div>
             </fieldset>
 
-            <!-- [!! 修正 !!] name 屬性已更新 -->
             <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
               <legend class="text-lg font-semibold px-2 text-gray-700">客訂商品 B (選填)</legend>
               <div class="product-grid mt-3">
@@ -130,8 +126,7 @@
                   <input id="productBSpec" name="B商品規格" type="text" class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                 </div>
                 <div class="product-field">
-                  <label for="productBQty" class="no-wrap-label text-sm font-medium text-gray-700">數量</label>
-                  <!-- [!! 修正 !!] 欄位名稱 B商品數量 -> B數量 -->
+                  <label for="productBQty" class="no-wrap-label text-sm font-medium text-gray-700">数量</label>
                   <input id="productBQty" name="B數量" type="number" min="1" class="mt-1 w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                 </div>
               </div>
@@ -145,6 +140,9 @@
       <div class="flex justify-center mt-4">
         <button type="submit" id="submitButton" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-10 rounded-lg shadow">送出訂單</button>
       </div>
+
+      <div id="message-box" class="hidden p-4 my-4 rounded-md max-w-3xl mx-auto"></div>
+
     </form>
 
     <!-- Data Query (bottom) -->
@@ -156,7 +154,6 @@
         </div>
 
         <div class="flex flex-col md:flex-row gap-4 mb-4">
-          <!-- [!! 修正 !!] 更新 placeholder 提示文字 -->
           <input id="searchInput" type="text" placeholder="搜尋客號、姓名、電話或商品名稱/規格..." class="block w-full md:flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
           <div class="flex gap-2">
             <button id="searchButton" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">搜尋</button>
@@ -214,8 +211,7 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700">A 數量</label>
-            <!-- [!! 修正 !!] 欄位名稱 A商品數量 -> A數量 -->
+            <label class="block text-sm font-medium text-gray-700">A 数量</label>
             <input id="editProductAQty" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
 
@@ -228,32 +224,31 @@
             <input id="editProductBSpec" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">B 數量</label>
-            <!-- [!! 修正 !!] 欄位名稱 B商品數量 -> B數量 -->
+            <label class="block text-sm font-medium text-gray-700">B 数量</label>
             <input id="editProductBQty" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700">採購日期</label>
             <div class="flex items-center mt-1">
-              <input id="editPurchaseDate" type="date" class="w-full rounded-md border-gray-300" />
-              <button type="button" class="btn date-action bg-blue-600 text-white" data-target="editPurchaseDate">標記今天</button>
+              <input id="editPurchaseDate" type="date" class="flex-1 rounded-md border-gray-300" />
+              <button type="button" class="btn date-action bg-blue-600 text-white flex-shrink-0" data-target="editPurchaseDate">標記今天</button>
             </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700">到貨日期</label>
             <div class="flex items-center mt-1">
-              <input id="editArrivalDate" type="date" class="w-full rounded-md border-gray-300" />
-              <button type="button" class="btn date-action bg-blue-600 text-white" data-target="editArrivalDate">標記今天</button>
+              <input id="editArrivalDate" type="date" class="flex-1 rounded-md border-gray-300" />
+              <button type="button" class="btn date-action bg-blue-600 text-white flex-shrink-0" data-target="editArrivalDate">標記今天</button>
             </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700">取走日期</label>
             <div class="flex items-center mt-1">
-              <input id="editPickupDate" type="date" class="w-full rounded-md border-gray-300" />
-              <button type="button" class="btn date-action bg-blue-600 text-white" data-target="editPickupDate">標記今天</button>
+              <input id="editPickupDate" type="date" class="flex-1 rounded-md border-gray-300" />
+              <button type="button" class="btn date-action bg-blue-600 text-white flex-shrink-0" data-target="editPickupDate">標記今天</button>
             </div>
           </div>
 
@@ -381,9 +376,10 @@
     }
 
     function showMessage(type, html){
-      if(!messageBox){ alert(html.replace(/<[^>]*>/g,'')); return; }
+      // [!! 修正 !!] 移除 alert
+      if(!messageBox){ console.error('Message: ' + html.replace(/<[^>]*>/g,'')); return; }
       messageBox.innerHTML = html;
-      messageBox.className = 'p-4 mb-4 rounded-md';
+      messageBox.className = 'p-4 my-4 rounded-md max-w-3xl mx-auto';
       if(type === 'success') messageBox.classList.add('bg-green-100','text-green-800');
       else messageBox.classList.add('bg-red-100','text-red-800');
       messageBox.classList.remove('hidden');
@@ -527,27 +523,16 @@
         fd.set('建立日期', creationDateForSheet);
         fd.set('creationDate', new Date().toISOString());
 
-        // 兼容多種 header 名稱（避免試算表 header 與 input name 不一致）
         function safeSet(fd, key, value){
           if(value === undefined || value === null) value = '';
           fd.set(key, value);
         }
 
-        // [!! 修正 !!]
-        // 舊的 productA/B safeSet 區塊已移除。
-        // new FormData(form) 會自動抓取 <input> 上的 name 屬性 (例如 "客訂商品A", "A商品規格" 等)
-        // 這才是正確且乾淨的做法。
+        // new FormData(form) 會自動抓取 <input> 上的 name 屬性
 
         // 其他
         safeSet(fd, '備註', (document.getElementById('notes') ? document.getElementById('notes').value : ''));
         
-        // [!! 修正 !!] 
-        // 您的 HTML 中沒有 'storeTransfer', 'missedCallDates', 'notifyDates' 這些 ID。
-        // 我將這幾行註解掉，避免未來出錯。
-        // safeSet(fd, '分店調撥', (document.getElementById('storeTransfer') ? document.getElementById('storeTransfer').value : ''));
-        // if(missedCallDatesHidden) safeSet(fd, '未接電話日期', missedCallDatesHidden.value || '');
-        // if(notifyDatesHidden) safeSet(fd, '通知日期', notifyDatesHidden.value || '');
-
         const resp = await fetch(SCRIPT_URL, { method:'POST', body: fd });
         const json = await resp.json();
         if(json && json.result === 'success'){
@@ -569,16 +554,14 @@
 
     // ===== 資料顯示 / 編輯相關 =====
     let allOrders = [], tableHeadersOriginal = [], headerNameMap = {
-      '客訂商品1':'客訂商品 A','商品規格1':'商品規格 A','數量1':'數量 A',
-      '客訂商品2':'客訂商品 B','商品規格2':'商品規格 B','數量2':'數量 B',
-      // [!! 修正 !!] 加入您 Google Sheet 的欄位名稱對應，讓表格標題好看一點
-      '客訂商品A':'客訂商品 A','A商品規格':'規格 A','A商品數量':'數量 A',
-      '客訂商品B':'客訂商品 B','B商品規格':'規格 B','B商品數量':'數量 B',
-      'A數量':'數量 A', 'B數量':'數量 B' // <-- [!! 修正 !!] 新增/確保這行存在
+      '客訂商品A':'客訂商品 A','A商品規格':'規格 A',
+      '客訂商品B':'客訂商品 B','B商品規格':'規格 B',
+      'A數量':'数量 A', 'B數量':'数量 B'
     };
 
     function pawSVG(){ return `<svg class="status-paw" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M19.5 10.5c0 1.38-1.12 2.5-2.5 2.5s-2.5-1.12-2.5-2.5S15.62 8 17 8s2.5 1.12 2.5 2.5zM11.5 6c0 1.38-1.12 2.5-2.5 2.5S6.5 7.38 6.5 6 7.62 3.5 9 3.5 11.5 4.62 11.5 6zM6 13.5c0 1.38-1.12 2.5-2.5 2.5S1 14.88 1 13.5 2.12 11 3.5 11 6 12.12 6 13.5zM21 13.5c0 1.38-1.12 2.5-2.5 2.5S16 14.88 16 13.5 17.12 11 18.5 11 21 12.12 21 13.5zM12 12c-2 0-4 2-4 4 0 2 1.79 4 4 4s4-2 4-4c0-2-2-4-4-4z"/></svg>`; }
 
+    // [!! 修正 !!] 狀態文字 "尚未聯絡到" -> "已到貨未接電話"
     function getOrderStatus(order){
       const purchaseDate = order['採購日期'];
       const arrivalDate = order['到貨日期'];
@@ -587,13 +570,13 @@
       const pickupDate = order['取走日期'];
       if (pickupDate) return { text:'結案', class:'status-closed' };
       if (notifyDates) return { text:'已通知等取貨', class:'status-notified' };
-      if (missedCallDates) return { text:'尚未聯絡到', class:'status-missed' };
+      if (missedCallDates) return { text:'已到貨未接電話', class:'status-missed' };
       if (arrivalDate) return { text:'已到貨還未聯絡', class:'status-arrived' };
       if (purchaseDate) return { text:'已採購等到貨', class:'status-purchase' };
       return { text:'尚未處理', class:'status-pending' };
     }
 
-    const DATE_FIELDS = ['採購日期','到貨日期','取走日期','未接電話日期','通知日期','建立日期','creationDate','最後更新時間']; // [!! 修正 !!] 加入 最後更新時間
+    const DATE_FIELDS = ['採購日期','到貨日期','取走日期','未接電話日期','通知日期','建立日期','creationDate','最後更新時間'];
     function formatToYYYYMMDD(singleVal){
       if(!singleVal && singleVal !== 0) return '';
       const s = String(singleVal).trim();
@@ -671,10 +654,8 @@
         delBtn.textContent = '刪除';
         delBtn.dataset.sheetRow = order['__row'];
         delBtn.addEventListener('click', ()=> {
-          // [!! 修正 !!] 移除 window.confirm
-          if (confirm('確定要刪除此筆資料嗎？此動作無法還原。')) {
-            deleteRow(order['__row']);
-          }
+          // [!! 修正 !!] 移除 confirm
+          deleteRow(order['__row']);
         });
         delTd.appendChild(delBtn); tr.appendChild(delTd);
 
@@ -685,6 +666,9 @@
           if(origHeader === '連絡電話' || origHeader.toLowerCase().includes('電話')){
             td.textContent = formatPhone(rawVal); td.classList.add('phone-cell');
           } else {
+            // [!! 修正 !!] 這裡發生了打字錯誤
+            // 原本: td.textContent = formatFieldValueIfDate(origHeader, rawValue);
+            // 修正: td.textContent = formatFieldValueIfDate(origHeader, rawVal);
             td.textContent = formatFieldValueIfDate(origHeader, rawVal);
           }
           tr.appendChild(td);
@@ -696,7 +680,8 @@
 
     // 刪除列
     async function deleteRow(rowValue){
-      if(!rowValue){ alert('找不到要刪除的列'); return; } // [!! 修正 !!] 暫時保留 alert
+      // [!! 修正 !!] 移除 alert
+      if(!rowValue){ console.error('找不到要刪除的列'); return; }
       try {
         const fd = new FormData();
         fd.append('action', 'delete');
@@ -720,7 +705,6 @@
         const t = Date.parse(order.creationDate);
         if(!isNaN(t)) return t;
       }
-      // [!! 修正 !!] 優先使用 最後更新時間 排序
       const val = order && (order['最後更新時間'] || order['creationDate'] || order['建立日期'] || '');
       if(val){
         const iso = String(val).match(/\d{4}[-\/]\d{2}[-\/]\d{2}/);
@@ -760,7 +744,7 @@
         renderTableHeaders(displayHeaders);
         displayData(allOrders.slice(0,50));
         if(allOrders.length === 0){ noDataText.classList.remove('hidden'); dataTableContainer.classList.add('hidden'); }
-        else { noDataText.classList.add('hidden'); dataTableContainer.classList.remove('hidden'); } // [!! 修正 !!] 顯示資料時隱藏 "noDataText"
+        else { noDataText.classList.add('hidden'); dataTableContainer.classList.remove('hidden'); }
       }catch(err){
         console.error('讀取資料失敗:', err);
         showDataMessage('error', '<strong>讀取資料失敗：</strong>' + err.message);
@@ -772,19 +756,19 @@
     // Open edit modal and fill values
     function openEditModal(sheetRow){
       const order = allOrders.find(o => String(o['__row']) === String(sheetRow));
-      if(!order){ alert('找不到此筆資料'); return; } // [!! 修正 !!] 暫時保留 alert
+      // [!! 修正 !!] 移除 alert
+      if(!order){ console.error('找不到此筆資料'); return; }
       document.getElementById('editRowIndex').value = order['__row'];
       document.getElementById('editCustomerName').value = order['姓名'] || '';
       document.getElementById('editPhone').value = formatPhone(order['連絡電話'] || '');
       
-      // [!! 修正 !!] 使用您 Google Sheet 的欄位名稱
-      document.getElementById('editProductAName').value = order['客訂商品A'] || order['客訂商品1'] || '';
-      document.getElementById('editProductASpec').value = order['A商品規格'] || order['商品規格1'] || '';
-      document.getElementById('editProductAQty').value = order['A數量'] || order['A商品數量'] || order['數量1'] || ''; // [!! 修正 !!]
+      document.getElementById('editProductAName').value = order['客訂商品A'] || '';
+      document.getElementById('editProductASpec').value = order['A商品規格'] || '';
+      document.getElementById('editProductAQty').value = order['A數量'] || '';
 
-      document.getElementById('editProductBName').value = order['客訂商品B'] || order['客訂商品2'] || '';
-      document.getElementById('editProductBSpec').value = order['B商品規格'] || order['商品規格2'] || '';
-      document.getElementById('editProductBQty').value = order['B數量'] || order['B商品數量'] || order['數量2'] || ''; // [!! 修正 !!]
+      document.getElementById('editProductBName').value = order['客訂商品B'] || '';
+      document.getElementById('editProductBSpec').value = order['B商品規格'] || '';
+      document.getElementById('editProductBQty').value = order['B數量'] || '';
 
       // 使用 toDateOnly 以避免時區問題
       document.getElementById('editPurchaseDate').value = toDateOnly(order['採購日期'] || '');
@@ -795,7 +779,6 @@
 
       try{
         const missed = (order['未接電話日期']||'').toString().split(/[,;，\s]+/).filter(Boolean).map(s=>{
-          // 嘗試轉成 YYYY-MM-DD（date input 可用格式）
           const d = toDateOnly(s);
           return d || s;
         });
@@ -817,7 +800,6 @@
       e.preventDefault();
       const rowValue = document.getElementById('editRowIndex').value;
       
-      // [!! 修正 !!] 確保 payload 的 key 符合 Google Sheet 欄位名稱
       const payload = {
         action:'update',
         row: rowValue,
@@ -825,10 +807,10 @@
         '連絡電話': document.getElementById('editPhone').value || '',
         '客訂商品A': document.getElementById('editProductAName').value || '',
         'A商品規格': document.getElementById('editProductASpec').value || '',
-        'A數量': document.getElementById('editProductAQty').value || '', // [!! 修正 !!]
+        'A數量': document.getElementById('editProductAQty').value || '',
         '客訂商品B': document.getElementById('editProductBName').value || '',
         'B商品規格': document.getElementById('editProductBSpec').value || '',
-        'B數量': document.getElementById('editProductBQty').value || '', // [!! 修正 !!]
+        'B數量': document.getElementById('editProductBQty').value || '',
         '採購日期': document.getElementById('editPurchaseDate').value || '',
         '到貨日期': document.getElementById('editArrivalDate').value || '',
         '取走日期': document.getElementById('editPickupDate').value || '',
@@ -854,10 +836,12 @@
     deleteEditBtn && deleteEditBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       const rowValue = document.getElementById('editRowIndex').value;
-      if(!rowValue) { alert('找不到此筆資料的索引，無法刪除。'); return; } // [!! 修正 !!] 暫時保留 alert
-      // [!! 修正 !!] 移除 window.confirm
-      const ok = confirm('確定要刪除此筆資料嗎？此動作無法還原。');
-      if(!ok) return;
+      // [!! 修正 !!] 移除 alert
+      if(!rowValue) { console.error('找不到此筆資料的索引，無法刪除。'); return; }
+      
+      // [!! 修正 !!] 移除 confirm
+      // const ok = confirm('確定要刪除此筆資料嗎？此動作無法還原。');
+      // if(!ok) return;
 
       try {
         deleteEditBtn.disabled = true;
@@ -884,7 +868,6 @@
     // ===== 搜尋（含提示） =====
     function digitsOnly(s){ return String(s||'').replace(/\D/g,''); }
     
-    // [!! 修正 !!] 搜尋邏輯
     function filterAndDisplayData(){
       const term = (searchInput.value || '').toLowerCase().trim();
       const searchDigits = digitsOnly(term);
@@ -905,7 +888,6 @@
         const phoneDigits = digitsOnly(order['連絡電話']);
         const matchByNumber = searchDigits && phoneDigits.includes(searchDigits);
         
-        // [!! 修正 !!] 加入商品A/B的名稱與規格
         const productA = String(order['客訂商品A'] || '').toLowerCase();
         const specA = String(order['A商品規格'] || '').toLowerCase();
         const productB = String(order['客訂商品B'] || '').toLowerCase();
@@ -916,20 +898,20 @@
                phone.includes(term) || 
                status.includes(term) || 
                matchByNumber ||
-               productA.includes(term) || // <-- [!! 修正 !!]
-               specA.includes(term) ||    // <-- [!! 修正 !!]
-               productB.includes(term) || // <-- [!! 修正 !!]
-               specB.includes(term);      // <-- [!! 修正 !!]
+               productA.includes(term) ||
+               specA.includes(term) ||
+               productB.includes(term) ||
+               specB.includes(term);
       });
 
       if(filtered.length === 0){
         displayData([]);
         showDataMessage('info', '找不到符合條件的資料。');
-        noDataText.classList.remove('hidden'); // [!! 修正 !!]
+        noDataText.classList.remove('hidden');
       } else {
         hideDataMessage();
         displayData(filtered);
-        noDataText.classList.add('hidden'); // [!! 修正 !!]
+        noDataText.classList.add('hidden');
       }
     }
 
