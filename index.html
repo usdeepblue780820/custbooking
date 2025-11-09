@@ -442,7 +442,7 @@
             <input type="hidden" id="longTerm_editPickupHidden" />
           </div>
           
-          <!-- 版面順序調整 -->
+          <!-- 通知日期（可多筆） -->
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700">通知日期（可多筆）</label>
             <div class="mt-1 flex gap-2">
@@ -464,7 +464,6 @@
             <div id="longTerm_editMissedTags" class="mt-2"></div>
             <input type="hidden" id="longTerm_editMissedHidden" />
           </div>
-          <!-- END 版面順D序調整 -->
 
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700">備註</label>
@@ -697,10 +696,14 @@
       try{
         submitButton && (submitButton.disabled = true);
         const fd = new FormData(form);
-        
+
+        // 若 checkbox 未被勾，FormData 不會有該 name -> 預設為 否
         if (!fd.has('paid')) fd.set('paid', '否');
         if (!fd.has('固定/長期客訂')) fd.set('固定/長期客訂', '否');
-        
+
+        // ** 保險：同時送出中文欄位名 '付清'（某些後端/試算表欄位名稱為中文） **
+        fd.set('付清', fd.get('paid') || '否');
+
         const resp = await fetch(SCRIPT_URL, { method:'POST', body: fd });
         const json = await resp.json();
         if(json && json.result === 'success'){
@@ -734,7 +737,7 @@
         if (typeof value === 'boolean') return value;
         if (typeof value === 'string') {
             const s = value.toLowerCase().trim();
-            return s === '是' || s === 'true';
+            return s === '是' || s === 'true' || s === '1' || s === 'yes';
         }
         return false;
     }
@@ -815,7 +818,7 @@
       });
     }
 
-    // displayData (一般) - 修正版：確保把 delTd append 回 tr
+    // displayData (一般) - 修正版：同時支援 paid 或 付清 欄位
     function displayData(orders){
       dataTableBody.innerHTML = '';
       if(!orders || orders.length === 0){
@@ -854,14 +857,15 @@
         delBtn.dataset.sheetRow = order['__row'];
         delBtn.addEventListener('click', ()=> { deleteRow(order['__row']); });
         delTd.appendChild(delBtn);
-        tr.appendChild(delTd); // ← 修正：把 td 加回 tr
+        tr.appendChild(delTd); // ← 把 td 回補到 tr
 
         tableHeadersOriginal.forEach(origHeader=>{
           const td = document.createElement('td');
           td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center';
           const rawVal = (order[origHeader] !== undefined && order[origHeader] !== null) ? order[origHeader] : '';
 
-          if (origHeader === 'paid' || origHeader === '固定/長期客訂') {
+          // 同時支援 'paid' 或中文 '付清' 欄位名稱
+          if (origHeader === 'paid' || origHeader === '付清' || origHeader === '固定/長期客訂') {
             td.textContent = isChecked(rawVal) ? '✔' : '';
           } else if(origHeader === '連絡電話' || origHeader.toLowerCase().includes('電話')){
             td.textContent = formatPhone(rawVal); td.classList.add('phone-cell');
@@ -875,7 +879,7 @@
       });
     }
     
-    // displayLongTermData (固定/長期) - 修正版：確保把 delTd append 回 tr
+    // displayLongTermData (固定/長期) - 修正版
     function displayLongTermData(orders){
       longTerm_dataTableBody.innerHTML = '';
       if(!orders || orders.length === 0){
@@ -914,14 +918,14 @@
         delBtn.dataset.sheetRow = order['__row'];
         delBtn.addEventListener('click', ()=> { deleteRow(order['__row']); });
         delTd.appendChild(delBtn);
-        tr.appendChild(delTd); // ← 修正：把 td 加回 tr
+        tr.appendChild(delTd);
 
         longTerm_tableHeadersOriginal.forEach(origHeader=>{
           const td = document.createElement('td');
           td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center';
           const rawVal = (order[origHeader] !== undefined && order[origHeader] !== null) ? order[origHeader] : '';
 
-          if (origHeader === 'paid' || origHeader === '固定/長期客訂') {
+          if (origHeader === 'paid' || origHeader === '付清' || origHeader === '固定/長期客訂') {
             td.textContent = isChecked(rawVal) ? '✔' : '';
           } else if(origHeader === '連絡電話' || origHeader.toLowerCase().includes('電話')){
             td.textContent = formatPhone(rawVal); td.classList.add('phone-cell');
@@ -1063,7 +1067,9 @@
       document.getElementById('editProductBSpec').value = order['B商品規格'] || '';
       document.getElementById('editProductBQty').value = order['B數量'] || '';
       
-      document.getElementById('editPaid').checked = isChecked(order['paid']);
+      // 支援從試算表讀到 '付清' 或 'paid'
+      const paidVal = order['付清'] !== undefined ? order['付清'] : order['paid'];
+      document.getElementById('editPaid').checked = isChecked(paidVal);
       
       document.getElementById('editPurchaseDate').value = toDateOnly(order['採購日期'] || '');
       document.getElementById('editArrivalDate').value = toDateOnly(order['到貨日期'] || '');
@@ -1098,7 +1104,8 @@
       document.getElementById('longTerm_editProductBSpec').value = order['B商品規格'] || '';
       document.getElementById('longTerm_editProductBQty').value = order['B數量'] || '';
       
-      document.getElementById('longTerm_editPaid').checked = isChecked(order['paid']);
+      const paidVal = order['付清'] !== undefined ? order['付清'] : order['paid'];
+      document.getElementById('longTerm_editPaid').checked = isChecked(paidVal);
       
       document.getElementById('longTerm_editStoreTransfer').value = order['分店調撥'] || '';
       document.getElementById('longTerm_editNotes').value = order['備註'] || order['說明'] || '';
@@ -1130,10 +1137,11 @@
     longTerm_closeEditModal.addEventListener('click', longTerm_closeModal);
     longTerm_cancelEdit.addEventListener('click', (e)=>{ e.preventDefault(); longTerm_closeModal(); });
 
-    // 儲存變更 (一般)
+    // 儲存變更 (一般) - 修改為同時送 paid 與 付清
     editForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const rowValue = document.getElementById('editRowIndex').value;
+      const paidVal = document.getElementById('editPaid').checked ? '是' : '否';
       const payload = {
         action:'update',
         row: rowValue,
@@ -1145,7 +1153,9 @@
         '客訂商品B': document.getElementById('editProductBName').value || '',
         'B商品規格': document.getElementById('editProductBSpec').value || '',
         'B數量': document.getElementById('editProductBQty').value || '',
-        'paid': document.getElementById('editPaid').checked ? '是' : '否',
+        // 保留 paid 欄位，同時寫入中文欄位 '付清'
+        'paid': paidVal,
+        '付清': paidVal,
         '固定/長期客訂': document.getElementById('editLongTermHidden').value || '否',
         '採購日期': document.getElementById('editPurchaseDate').value || '',
         '到貨日期': document.getElementById('editArrivalDate').value || '',
@@ -1168,10 +1178,11 @@
       }finally{ document.getElementById('saveEdit').disabled = false; }
     });
     
-    // 儲存變更 (固定/長期)
+    // 儲存變更 (固定/長期) - 同上，確保送出 '付清'
     longTerm_editForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const rowValue = document.getElementById('longTerm_editRowIndex').value;
+      const paidVal = document.getElementById('longTerm_editPaid').checked ? '是' : '否';
       const payload = {
         action:'update',
         row: rowValue,
@@ -1183,7 +1194,8 @@
         '客訂商品B': document.getElementById('longTerm_editProductBName').value || '',
         'B商品規格': document.getElementById('longTerm_editProductBSpec').value || '',
         'B數量': document.getElementById('longTerm_editProductBQty').value || '',
-        'paid': document.getElementById('longTerm_editPaid').checked ? '是' : '否',
+        'paid': paidVal,
+        '付清': paidVal,
         '固定/長期客訂': document.getElementById('longTerm_editLongTermHidden').value || '是',
         '採購日期': document.getElementById('longTerm_editPurchaseHidden').value || '',
         '到貨日期': document.getElementById('longTerm_editArrivalHidden').value || '',
