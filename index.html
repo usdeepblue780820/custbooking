@@ -930,10 +930,12 @@
 
     function formatFieldValueIfDate(fieldName, rawValue){
       if(!rawValue && rawValue !== 0) return '';
+      // 如果是已知的日期欄位，才做日期格式化
       if(DATE_FIELDS.includes(fieldName)){
         const parts = String(rawValue).split(/[,;，\n]+/).map(s=>s.trim()).filter(Boolean).map(formatToYYYYMMDD);
         return parts.join(', ');
       }
+      // 若 rawValue 含 ISO 日期格式才轉
       if(String(rawValue).includes('T') || /\d{4}-\d{2}-\d{2}/.test(String(rawValue))) return formatToYYYYMMDD(rawValue);
       return String(rawValue);
     }
@@ -1013,12 +1015,20 @@
         delTd.appendChild(delBtn);
         tr.appendChild(delTd);
 
+        // *** 重要：若欄位為「客號」（或名稱含客號），強制當作文字處理，不做任何日期解析或自動格式化 ***
         tableHeadersOriginal.forEach(origHeader=>{
           const td = document.createElement('td');
           td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center';
           const rawVal = (order[origHeader] !== undefined && order[origHeader] !== null) ? order[origHeader] : '';
 
-          if (origHeader === 'paid' || origHeader === '付清' || origHeader === '固定/長期客訂') {
+          const lowerHeader = String(origHeader||'').toLowerCase();
+          // 判斷是否為客號欄（若你的試算表欄名是其他文字也可以在此加上判斷）
+          const isCustomerIdField = /客號|cust ?id|customer ?id/i.test(origHeader);
+
+          if (isCustomerIdField) {
+            // 強制視為文字，保持原樣（保留前導零與字母）
+            td.textContent = String(rawVal);
+          } else if (origHeader === 'paid' || origHeader === '付清' || origHeader === '固定/長期客訂') {
             td.textContent = isChecked(rawVal) ? '✔' : '';
           } else if(origHeader === '連絡電話' || origHeader.toLowerCase().includes('電話')){
             td.textContent = formatPhone(rawVal); td.classList.add('phone-cell');
@@ -1077,7 +1087,11 @@
           td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center';
           const rawVal = (order[origHeader] !== undefined && order[origHeader] !== null) ? order[origHeader] : '';
 
-          if (origHeader === 'paid' || origHeader === '付清' || origHeader === '固定/長期客訂') {
+          const isCustomerIdField = /客號|cust ?id|customer ?id/i.test(origHeader);
+
+          if (isCustomerIdField) {
+            td.textContent = String(rawVal);
+          } else if (origHeader === 'paid' || origHeader === '付清' || origHeader === '固定/長期客訂') {
             td.textContent = isChecked(rawVal) ? '✔' : '';
           } else if(origHeader === '連絡電話' || origHeader.toLowerCase().includes('電話')){
             td.textContent = formatPhone(rawVal); td.classList.add('phone-cell');
