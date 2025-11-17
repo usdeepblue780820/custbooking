@@ -887,7 +887,7 @@
       const s = String(val).trim().toLowerCase();
       if (!s) return '否';
       if (['是','true','1','yes','y','on','v','✔','checked','t'].indexOf(s) !== -1) return '是';
-      if (['否','false','0','no','n','off','f'].indexOf(s) !== -1) return '否';
+      if (['否','false','0','no','n','off','f'].indexOf(s).indexOf !== -1) return '否';
       if (s.indexOf('是') !== -1) return '是';
       if (s.indexOf('否') !== -1) return '否';
       return '否';
@@ -912,13 +912,92 @@
 
     function pawSVG(){ return `<svg class="status-paw" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M19.5 10.5c0 1.38-1.12 2.5-2.5 2.5s-2.5-1.12-2.5-2.5S15.62 8 17 8s2.5 1.12 2.5 2.5zM11.5 6c0 1.38-1.12 2.5-2.5 2.5S6.5 7.38 6.5 6 7.62 3.5 9 3.5 11.5 4.62 11.5 6zM6 13.5c0 1.38-1.12 2.5-2.5 2.5S1 14.88 1 13.5 2.12 11 3.5 11 6 12.12 6 13.5zM21 13.5c0 1.38-1.12 2.5-2.5 2.5S16 14.88 16 13.5 17.12 11 18.5 11 21 12.12 21 13.5zM12 12c-2 0-4 2-4 4 0 2 1.79 4 4 4s4-2 4-4c0-2-2-4-4-4z"/></svg>`; }
 
+    /**
+     * 以「最新的事件日期」決定狀態
+     * 事件與對應欄位（優先順序由比較日期決定，不再用固定優先級）：
+     * - 採購日期  -> '已採購等到貨' (status-purchase)
+     * - 到貨日期  -> '已到貨還未聯絡' (status-arrived)
+     * - 未接電話日期 -> '已到貨未接電話' (status-missed)
+     * - 通知日期  -> '已通知等取貨' (status-notified)
+     * - 取走日期  -> '已取貨' (status-closed)  <- 注意：顯示文字為「已取貨」，class 用 status-closed 保持綠色樣式
+     *
+     * 若沒有任何事件日期，則回傳原本的判定（以欄位存在與否決定）
+     */
     function getOrderStatus(order){
+      // helper: parse possible multi-date string and return latest timestamp (ms)
+      function latestDateFromField(val){
+        if(!val && val !== 0) return 0;
+        // 如果是陣列或已格式化為多筆，以逗號/分號/空白分割
+        const s = String(val || '').trim();
+        if(!s) return 0;
+        const parts = s.split(/[,;，、\n]+/).map(x => x.trim()).filter(Boolean);
+        let latest = 0;
+        parts.forEach(p => {
+          // 支援 YYYY/MM/DD, YYYY-MM-DD, ISO, 以及 Date 物件字串
+          let dt = null;
+          const m1 = p.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+          if(m1){
+            dt = new Date(parseInt(m1[1],10), parseInt(m1[2],10)-1, parseInt(m1[3],10));
+          } else {
+            const iso = p.match(/\d{4}-\d{2}-\d{2}/);
+            if(iso){
+              dt = new Date(iso[0].replace(/-/g,'/'));
+            } else {
+              const dtmp = new Date(p);
+              if(!isNaN(dtmp)) dt = dtmp;
+            }
+          }
+          if(dt && !isNaN(dt.getTime())){
+            if(dt.getTime() > latest) latest = dt.getTime();
+          }
+        });
+        return latest;
+      }
+
+      // 取得各欄位內最新一筆時間(ms)
+      const purchaseLatest = latestDateFromField(order['採購日期']);
+      const arrivalLatest  = latestDateFromField(order['到貨日期']);
+      const missedLatest   = latestDateFromField(order['未接電話日期']);
+      const notifyLatest   = latestDateFromField(order['通知日期']);
+      const pickupLatest   = latestDateFromField(order['取走日期']);
+
+      // 將各事件與時間組成清單，找出時間最大的那一筆
+      const events = [
+        { key: 'purchase', time: purchaseLatest },
+        { key: 'arrival',  time: arrivalLatest },
+        { key: 'missed',   time: missedLatest },
+        { key: 'notify',   time: notifyLatest },
+        { key: 'pickup',   time: pickupLatest }
+      ];
+      events.sort((a,b) => b.time - a.time); // 由大到小
+
+      const top = events[0];
+
+      if(top && top.time > 0){
+        // 以最新事件決定狀態文字與 class
+        switch(top.key){
+          case 'pickup':
+            return { text:'已取貨', class:'status-closed' };          // 使用 closed 的樣式但文字為 已取貨
+          case 'notify':
+            return { text:'已通知等取貨', class:'status-notified' };
+          case 'missed':
+            return { text:'已到貨未接電話', class:'status-missed' };
+          case 'arrival':
+            return { text:'已到貨還未聯絡', class:'status-arrived' };
+          case 'purchase':
+            return { text:'已採購等到貨', class:'status-purchase' };
+          default:
+            break;
+        }
+      }
+
+      // fallback：若沒有任何明確日期，維持原本的推斷邏輯（欄位存在性）
       const purchaseDate = order['採購日期'];
       const arrivalDate = order['到貨日期'];
       const missedCallDates = order['未接電話日期'];
       const notifyDates = order['通知日期'];
       const pickupDate = order['取走日期'];
-      if (pickupDate && String(pickupDate).trim()) return { text:'結案', class:'status-closed' };
+      if (pickupDate && String(pickupDate).trim()) return { text:'已取貨', class:'status-closed' };
       if (notifyDates && String(notifyDates).trim()) return { text:'已通知等取貨', class:'status-notified' };
       if (missedCallDates && String(missedCallDates).trim()) return { text:'已到貨未接電話', class:'status-missed' };
       if (arrivalDate && String(arrivalDate).trim()) return { text:'已到貨還未聯絡', class:'status-arrived' };
@@ -1198,30 +1277,19 @@
         allOrders = [];
         allLongTermOrders = [];
         rows.forEach(order=>{
-          if(isChecked(order['固定/長期客訂'])){
-            // 如果是長期，但狀態為「結案」，不要放到長期清單（結案保留在主清單）
-            const statusText = getOrderStatus(order).text;
-            if(statusText === '結案'){
-              allOrders.push(order);
-            } else {
-              allLongTermOrders.push(order);
-            }
-          } else {
-            allOrders.push(order);
-          }
+          if(isChecked(order['固定/長期客訂'])) allLongTermOrders.push(order);
+          else allOrders.push(order);
         });
 
         // sort
         allOrders.sort((a,b)=>{
-          const aClosed = (getOrderStatus(a).text === '結案');
-          const bClosed = (getOrderStatus(b).text === '結案');
+          const aClosed = (getOrderStatus(a).text === '已取貨' || getOrderStatus(a).text === '已取貨');
+          const bClosed = (getOrderStatus(b).text === '已取貨' || getOrderStatus(b).text === '已取貨');
           if(aClosed !== bClosed) return aClosed ? 1 : -1;
           return getOrderTimestamp(b) - getOrderTimestamp(a);
         });
         allLongTermOrders.sort((a,b)=>{
-          const aClosed = (getOrderStatus(a).text === '結案');
-          const bClosed = (getOrderStatus(b).text === '結案');
-          if(aClosed !== bClosed) return aClosed ? 1 : -1;
+          // 為長期清單我們不把「已取貨」視為隱藏，但排序仍可依時間
           return getOrderTimestamp(b) - getOrderTimestamp(a);
         });
 
