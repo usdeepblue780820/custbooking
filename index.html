@@ -1198,8 +1198,17 @@
         allOrders = [];
         allLongTermOrders = [];
         rows.forEach(order=>{
-          if(isChecked(order['固定/長期客訂'])) allLongTermOrders.push(order);
-          else allOrders.push(order);
+          if(isChecked(order['固定/長期客訂'])){
+            // 如果是長期，但狀態為「結案」，不要放到長期清單（結案保留在主清單）
+            const statusText = getOrderStatus(order).text;
+            if(statusText === '結案'){
+              allOrders.push(order);
+            } else {
+              allLongTermOrders.push(order);
+            }
+          } else {
+            allOrders.push(order);
+          }
         });
 
         // sort
