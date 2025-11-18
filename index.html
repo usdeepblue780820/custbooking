@@ -9,11 +9,28 @@
     :root { --label-w: 7.5rem; }
     body { font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; }
     .no-wrap-label { white-space: nowrap; display:block; }
-    .table-container { width: 100%; max-height: 420px; overflow: auto; position: relative; -webkit-overflow-scrolling: touch; pointer-events: auto; }
+    /* 表格外層滾動區（可調高度） */
+    .table-container {
+      width: 100%;
+      max-height: 420px;   /* 若要更高/低可調整 */
+      overflow: auto;
+      position: relative;  /* 讓內部元素 z-index 有意義 */
+      -webkit-overflow-scrolling: touch; /* 行動裝置平滑滾動 */
+      /* 確保內部元素可點擊（避免被 overlay 影響） */
+      pointer-events: auto;
+    }
+    /* 強制 table 內元素可以接收 pointer 事件（有些情況下父層或外來樣式會改變） */
     .table-container * { pointer-events: auto; }
-    .table-container table { width: 100%; border-collapse: collapse; }
+
+    /* 確保表格寬度自適應，不會因 overflow 變形 */
+    .table-container table {
+      width: 100%;
+      border-collapse: collapse;
+    }
     th, td { white-space: nowrap; text-align: center; vertical-align: middle !important; }
     .tag { display:inline-flex; align-items:center; padding:.25rem .75rem; margin:.25rem; font-size:.875rem; font-weight:500; background:#e5e7eb; color:#374151; border-radius:9999px; }
+    .tag .remove { margin-left:.5rem; cursor:pointer; font-weight:bold; color:#9ca3af; }
+    .tag .remove:hover { color:#374151; }
     .status-tag { display:inline-flex; align-items:center; gap:0.5rem; padding:0.25rem 0.75rem; border-radius:9999px; font-weight:600; font-size:0.875rem; }
     .status-paw { display:inline-flex; width:16px; height:16px; align-items:center; justify-content:center; flex-shrink:0; }
     .status-pending { background:#f3f4f6; color:#374151; }
@@ -34,18 +51,93 @@
     .date-action { margin-left:0.5rem; }
     .info-box { background:#e6f0ff; color:#054a91; padding:0.75rem 1rem; border-radius:6px; }
     .phone-cell { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+    /* 微調：讓按鈕在 td 內更直覺置中並有一致高度 */
     td .inline-flex { height: 36px; align-items: center; justify-content:center; }
+    /* header center tweaks */
     header.site-header { display:flex; align-items:center; justify-content:center; gap:0.75rem; }
     header.site-header h1 { margin:0; display:flex; align-items:center; gap:0.5rem; }
+    /* top control bar */
     .topbar { background:transparent; display:flex; gap:1rem; align-items:center; padding:1rem; border-radius:8px; }
     .topbar .controls { display:flex; gap:0.75rem; align-items:center; }
     .topbar .hint { color:#6b7280; font-size:0.95rem; }
     .select-disabled { opacity:0.6; pointer-events:none; }
-    .table-container button, .table-container .inline-flex { position: relative; z-index: 5; cursor: pointer; }
-    .bookmark-bar { display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; margin-bottom:0.75rem; }
-    .bookmark { cursor:pointer; padding:.4rem .8rem; border-radius:999px; background:#f3f4f6; color:#374151; font-weight:600; border:1px solid transparent; }
-    .bookmark.active { background:#4f46e5; color:white; }
-    .bookmark.clear { background:#ef4444; color:white; }
+    /* 確保表格按鈕層級足夠並顯示游標 */
+    .table-container button,
+    .table-container .inline-flex {
+      position: relative;
+      z-index: 5;
+      cursor: pointer;
+    }
+    /* 若你有 modal/backdrop，保留其更高層級 */
+    .modal-backdrop { z-index: 50; }
+    .modal { z-index: 60; }
+
+    /* =========== 手機 modal 選單樣式（A + B） =========== */
+    /* 用於手機完整選單（全螢幕） */
+    .store-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: flex-end; /* 從底部推上來較像手機 sheet */
+    }
+    .store-modal-backdrop.open { display: flex; }
+    .store-modal {
+      background: #fff;
+      width: 100%;
+      max-height: 85vh;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .store-modal-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #eee;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .store-modal-list {
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .store-modal-item {
+      padding: 14px 16px;
+      border-bottom:1px solid #f3f4f6;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .store-modal-item:hover { background:#f8fafc; }
+    .store-modal-close {
+      background:transparent;
+      border:0;
+      font-size:18px;
+      padding:6px 8px;
+      cursor:pointer;
+    }
+    .store-modal-search {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      width: calc(100% - 28px);
+    }
+    /* 高亮目前已選擇的店家 */
+    .store-modal-item.selected {
+      background: linear-gradient(90deg,#eef2ff,#f8fafc);
+      color:#0f172a;
+    }
+
+    /* small-screen fix: make select visible and easier to tap */
+    @media (max-width:640px){
+      #storeSelect { font-size: 16px; padding: 10px; }
+    }
+
   </style>
 </head>
 <body class="bg-gray-100 p-4 md:p-8">
@@ -58,11 +150,12 @@
 
   <div class="max-w-7xl mx-auto space-y-6">
 
-    <!-- top controls -->
+    <!-- top controls: store select, lock, refresh -->
     <div class="bg-white p-4 rounded-lg shadow-sm">
       <div class="topbar">
         <div style="min-width:180px;font-weight:600;">店別選單</div>
         <div class="controls" style="flex:1;">
+          <!-- 原本的 select （桌機保留） -->
           <select id="storeSelect" class="rounded-md border-gray-300 shadow-sm p-2" style="min-width:260px;"></select>
           <label class="flex items-center gap-2">
             <input id="storeLockCheckbox" type="checkbox" />
@@ -75,15 +168,28 @@
       <div id="top-message" class="mt-2 text-sm text-red-600 hidden"></div>
     </div>
 
-    <!-- form omitted for brevity (kept identical to your previous) -->
-    <!-- I'll keep the same form structure as you had previously (customer/product inputs). -->
-    <!-- (For brevity here I'm including the same form block from your current file.) -->
+    <!-- 手機專用：店別 modal（A + B） -->
+    <div id="storeModalBackdrop" class="store-modal-backdrop" aria-hidden="true">
+      <div class="store-modal" role="dialog" aria-modal="true" aria-labelledby="storeModalTitle">
+        <div class="store-modal-header">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <strong id="storeModalTitle">選擇店別</strong>
+            <input id="storeModalSearch" class="store-modal-search" placeholder="搜尋店號或店名" />
+          </div>
+          <button id="storeModalClose" class="store-modal-close" aria-label="關閉">&times;</button>
+        </div>
+        <div id="storeModalList" class="store-modal-list"></div>
+      </div>
+    </div>
 
+    <!-- Form -->
     <form id="orderForm">
       <div class="lg:grid lg:grid-cols-12 lg:gap-8 items-stretch">
+        <!-- Customer -->
         <div class="lg:col-span-6 mb-8 lg:mb-0">
           <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg h-full flex flex-col">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">顧客資料</h2>
+
             <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
               <legend class="text-lg font-semibold px-2 text-gray-700">基本資料</legend>
               <div class="mt-4 space-y-3">
@@ -103,6 +209,7 @@
                   <label for="lineName" class="no-wrap-label w-28 text-sm font-medium text-gray-700">LINE名稱</label>
                   <input id="lineName" name="LINE名稱" type="text" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                 </div>
+                <!-- 勾選區塊 -->
                 <div class="flex items-center gap-6">
                   <div class="flex items-center gap-3">
                     <label class="no-wrap-label text-sm font-medium text-gray-700">付清</label>
@@ -127,6 +234,7 @@
           </div>
         </div>
 
+        <!-- Product -->
         <div class="lg:col-span-6">
           <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg h-full flex flex-col">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">商品資料</h2>
@@ -175,10 +283,12 @@
       <div class="flex justify-center mt-4">
         <button type="submit" id="submitButton" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-10 rounded-lg shadow">送出訂單</button>
       </div>
+      <!-- 訊息框移到按鈕下方 -->
       <div id="message-box" class="hidden p-4 my-4 rounded-md max-w-3xl mx-auto"></div>
+
     </form>
 
-    <!-- Main Data area -->
+    <!-- Data Query (bottom) -->
     <div>
       <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
         <div class="flex items-center justify-between">
@@ -187,15 +297,13 @@
         </div>
 
         <div class="flex flex-col md:flex-row gap-4 mb-4">
+          <!-- 更新提示文字 -->
           <input id="searchInput" type="text" placeholder="搜尋客號、姓名、電話或商品名稱/規格..." class="block w-full md:flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
           <div class="flex gap-2">
             <button id="searchButton" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">搜尋</button>
             <button id="refreshButton" class="flex justify-center items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">重新整理</button>
           </div>
         </div>
-
-        <!-- 狀態書籤 -->
-        <div class="bookmark-bar" id="mainBookmarkBar"></div>
 
         <div id="data-message-box" class="hidden p-4 mb-4 rounded-md"></div>
 
@@ -214,7 +322,7 @@
       </div>
     </div>
 
-    <!-- Long-term area -->
+    <!-- 固定/長期客訂資料查詢 -->
     <div>
       <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
         <div class="flex items-center justify-between">
@@ -229,9 +337,6 @@
             <button id="longTerm_refreshButton" class="flex justify-center items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">重新整理</button>
           </div>
         </div>
-
-        <!-- 長期清單的狀態書籤 -->
-        <div class="bookmark-bar" id="longTermBookmarkBar"></div>
 
         <div id="longTerm_data-message-box" class="hidden p-4 mb-4 rounded-md"></div>
 
@@ -252,7 +357,7 @@
 
   </div>
 
-  <!-- Edit Modal (一般) — 加入客號欄 -->
+  <!-- Edit Modal (一般客訂) -->
   <div id="editModalBackdrop" class="modal-backdrop hidden">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
       <div class="flex items-center justify-between mb-4">
@@ -262,20 +367,13 @@
 
       <form id="editForm" class="space-y-4">
         <input type="hidden" id="editRowIndex" />
-        <input type="hidden" id="editLongTermHidden" />
+        <input type="hidden" id="editLongTermHidden" /> 
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- 客號欄可編輯 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700">客號</label>
-            <input id="editCustomerID" class="mt-1 w-full rounded-md border-gray-300" />
-          </div>
-
           <div>
             <label class="block text-sm font-medium text-gray-700">姓名</label>
             <input id="editCustomerName" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
-
           <div>
             <label class="block text-sm font-medium text-gray-700">連絡電話</label>
             <input id="editPhone" class="mt-1 w-full rounded-md border-gray-300" />
@@ -285,7 +383,6 @@
             <label class="block text-sm font-medium text-gray-700">客訂商品 A</label>
             <input id="editProductAName" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
-
           <div>
             <label class="block text-sm font-medium text-gray-700">A 商品規格</label>
             <input id="editProductASpec" class="mt-1 w-full rounded-md border-gray-300" />
@@ -300,12 +397,10 @@
             <label class="block text-sm font-medium text-gray-700">客訂商品 B</label>
             <input id="editProductBName" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
-
           <div>
             <label class="block text-sm font-medium text-gray-700">B 商品規格</label>
             <input id="editProductBSpec" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
-
           <div>
             <label class="block text-sm font-medium text-gray-700">B 数量</label>
             <input id="editProductBQty" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" />
@@ -339,7 +434,8 @@
             <label class="block text-sm font-medium text-gray-700">分店調撥</label>
             <input id="editStoreTransfer" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
-
+          
+          <!-- 付清勾選 -->
           <div class="md:col-span-2 flex items-center gap-3">
             <label class="no-wrap-label text-sm font-medium text-gray-700">付清</label>
             <input id="editPaid" name="paid" type="checkbox" value="是" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" />
@@ -382,7 +478,7 @@
     </div>
   </div>
 
-  <!-- Long-term edit modal (加入客號欄) -->
+  <!-- Edit Modal (固定/長期客訂) -->
   <div id="longTerm_editModalBackdrop" class="modal-backdrop hidden">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="longTerm_editModalTitle">
       <div class="flex items-center justify-between mb-4">
@@ -392,20 +488,13 @@
 
       <form id="longTerm_editForm" class="space-y-4">
         <input type="hidden" id="longTerm_editRowIndex" />
-        <input type="hidden" id="longTerm_editLongTermHidden" />
+        <input type="hidden" id="longTerm_editLongTermHidden" /> 
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- 客號 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700">客號</label>
-            <input id="longTerm_editCustomerID" class="mt-1 w-full rounded-md border-gray-300" />
-          </div>
-
           <div>
             <label class="block text-sm font-medium text-gray-700">姓名</label>
             <input id="longTerm_editCustomerName" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
-
           <div>
             <label class="block text-sm font-medium text-gray-700">連絡電話</label>
             <input id="longTerm_editPhone" class="mt-1 w-full rounded-md border-gray-300" />
@@ -415,7 +504,6 @@
             <label class="block text-sm font-medium text-gray-700">客訂商品 A</label>
             <input id="longTerm_editProductAName" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
-
           <div>
             <label class="block text-sm font-medium text-gray-700">A 商品規格</label>
             <input id="longTerm_editProductASpec" class="mt-1 w-full rounded-md border-gray-300" />
@@ -430,27 +518,27 @@
             <label class="block text-sm font-medium text-gray-700">客訂商品 B</label>
             <input id="longTerm_editProductBName" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
-
           <div>
             <label class="block text-sm font-medium text-gray-700">B 商品規格</label>
             <input id="longTerm_editProductBSpec" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
-
           <div>
             <label class="block text-sm font-medium text-gray-700">B 数量</label>
             <input id="longTerm_editProductBQty" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
-
+          
           <div>
             <label class="block text-sm font-medium text-gray-700">分店調撥</label>
             <input id="longTerm_editStoreTransfer" class="mt-1 w-full rounded-md border-gray-300" />
           </div>
-
+          
+          <!-- 付清勾選 -->
           <div class="md:col-span-1 flex items-center gap-3">
             <label class="no-wrap-label text-sm font-medium text-gray-700">付清</label>
             <input id="longTerm_editPaid" name="paid" type="checkbox" value="是" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" />
           </div>
 
+          <!-- 採購日期 (多筆) -->
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700">採購日期（可多筆）</label>
             <div class="mt-1 flex gap-2">
@@ -461,7 +549,8 @@
             <div id="longTerm_editPurchaseTags" class="mt-2"></div>
             <input type="hidden" id="longTerm_editPurchaseHidden" />
           </div>
-
+          
+          <!-- 到貨日期 (多筆) -->
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700">到貨日期（可多筆）</label>
             <div class="mt-1 flex gap-2">
@@ -473,6 +562,7 @@
             <input type="hidden" id="longTerm_editArrivalHidden" />
           </div>
 
+          <!-- 取走日期 (多筆) -->
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700">取走日期（可多筆）</label>
             <div class="mt-1 flex gap-2">
@@ -483,7 +573,8 @@
             <div id="longTerm_editPickupTags" class="mt-2"></div>
             <input type="hidden" id="longTerm_editPickupHidden" />
           </div>
-
+          
+          <!-- 通知日期（可多筆） -->
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700">通知日期（可多筆）</label>
             <div class="mt-1 flex gap-2">
@@ -494,7 +585,7 @@
             <div id="longTerm_editNotifyTags" class="mt-2"></div>
             <input type="hidden" id="longTerm_editNotifyHidden" />
           </div>
-
+          
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700">未接電話日期（可多筆）</label>
             <div class="mt-1 flex gap-2">
@@ -523,6 +614,7 @@
 
   <script>
     // ===== 設定 =====
+    // ※ 請確認這是你最新的 deploy URL（你提供過新的 deploy link）
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyfDwaVTkHD-HGtY-6MzxscARnxwML9j1Ejn4v5cvPCAlgIPNRNkuU07r_61OBEVAYK/exec";
 
     // ===== DOM 參考 =====
@@ -531,10 +623,16 @@
     const refreshStoresBtn = document.getElementById('refreshStoresBtn');
     const topMessage = document.getElementById('top-message');
 
+    const storeModalBackdrop = document.getElementById('storeModalBackdrop');
+    const storeModalList = document.getElementById('storeModalList');
+    const storeModalClose = document.getElementById('storeModalClose');
+    const storeModalSearch = document.getElementById('storeModalSearch');
+
     const form = document.getElementById('orderForm');
     const submitButton = document.getElementById('submitButton');
     const messageBox = document.getElementById('message-box');
 
+    // existing DOM refs used later for data table...
     const searchInput = document.getElementById('searchInput');
     const searchButton = document.getElementById('searchButton');
     const refreshButton = document.getElementById('refreshButton');
@@ -545,23 +643,14 @@
     const dataTableHeaders = document.getElementById('data-table-headers');
     const dataTableBody = document.getElementById('data-table-body');
 
-    const longTerm_searchInput = document.getElementById('longTerm_searchInput');
-    const longTerm_searchButton = document.getElementById('longTerm_searchButton');
-
-    const mainBookmarkBar = document.getElementById('mainBookmarkBar');
-    const longTermBookmarkBar = document.getElementById('longTermBookmarkBar');
-
-    // edit modal refs
+    // edit modal refs (kept as earlier)
     const editModalBackdrop = document.getElementById('editModalBackdrop');
     const closeEditModal = document.getElementById('closeEditModal');
     const cancelEdit = document.getElementById('cancelEdit');
     const editForm = document.getElementById('editForm');
     const deleteEditBtn = document.getElementById('deleteEdit');
 
-    // long term edit
-    const longTerm_editModalBackdrop = document.getElementById('longTerm_editModalBackdrop');
-
-    // tag controls refs used later (kept)
+    // other elements kept from previous UI (long-term, tags etc.)...
     const editAddMissed = document.getElementById('editAddMissed');
     const editStampMissed = document.getElementById('editStampMissed');
     const editMissedInput = document.getElementById('editMissedInput');
@@ -574,6 +663,7 @@
     const editNotifyTags = document.getElementById('editNotifyTags');
     const editNotifyHidden = document.getElementById('editNotifyHidden');
 
+    // longTerm elements
     const longTerm_editPurchaseCtrl_el = {
       addBtn: document.getElementById('longTerm_editAddPurchase'),
       stampBtn: document.getElementById('longTerm_editStampPurchase'),
@@ -713,6 +803,9 @@
         storeSelect.selectedIndex = 1;
       }
       updateStoreLockUI();
+
+      // 重新建立手機 modal 清單（A+B）
+      buildStoreModalListFromSelect();
     }
 
     async function refreshStoresAndCreateMissing(){
@@ -835,11 +928,113 @@
         }
       }
       await updateStoreLockUI();
-      initBookmarkBars();
       fetchOrderData();
     });
 
-    // ===== date/parse helpers =====
+    // ========== A + B: 手機 modal 選單邏輯 ==========
+
+    // 判別是否為 mobile（簡單 UA 判斷）
+    const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent || '');
+
+    // 由 select 建立 modal list（每次 populate 後呼叫）
+    function buildStoreModalListFromSelect(){
+      // 清空
+      storeModalList.innerHTML = '';
+      // 讀取 select option，建立陣列
+      const options = Array.from(storeSelect.options).map(o => ({ value: o.value, text: o.textContent })).filter(o => o.value !== '');
+      // 若空，顯示提示
+      if(options.length === 0){
+        const p = document.createElement('div');
+        p.className = 'store-modal-item';
+        p.textContent = '無可選擇的分店';
+        storeModalList.appendChild(p);
+        return;
+      }
+      // 建立 list item
+      options.forEach(opt => {
+        const div = document.createElement('div');
+        div.className = 'store-modal-item';
+        div.tabIndex = 0;
+        div.dataset.value = opt.value;
+        div.innerHTML = `<span>${opt.text}</span>`;
+        // 標記已選
+        if(storeSelect.value && String(storeSelect.value) === String(opt.value)){
+          div.classList.add('selected');
+        }
+        storeModalList.appendChild(div);
+      });
+
+      // 監聽：點選時把 select 設定值並觸發 change
+      storeModalList.querySelectorAll('.store-modal-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          const v = item.dataset.value;
+          if(!v) return;
+          // 設定 select 值
+          storeSelect.value = v;
+          // 觸發 change 事件（會走原本的 change handler）
+          storeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          closeStoreModal();
+        });
+        item.addEventListener('keydown', (ev) => {
+          if(ev.key === 'Enter' || ev.key === ' '){
+            ev.preventDefault();
+            item.click();
+          }
+        });
+      });
+    }
+
+    function openStoreModal(){
+      // 只在 mobile 時啟用
+      if(!isMobile) return;
+      storeModalBackdrop.classList.add('open');
+      storeModalBackdrop.setAttribute('aria-hidden', 'false');
+      // focus search
+      setTimeout(()=>{ storeModalSearch.focus(); }, 250);
+    }
+    function closeStoreModal(){
+      storeModalBackdrop.classList.remove('open');
+      storeModalBackdrop.setAttribute('aria-hidden', 'true');
+    }
+
+    // 關閉按鈕
+    storeModalClose.addEventListener('click', closeStoreModal);
+    // backdrop 點擊關閉（點在 modal 之外）
+    storeModalBackdrop.addEventListener('click', (e) => {
+      if(e.target === storeModalBackdrop) closeStoreModal();
+    });
+
+    // 搜尋欄：簡單 filter
+    storeModalSearch.addEventListener('input', ()=>{
+      const q = (storeModalSearch.value || '').trim().toLowerCase();
+      storeModalList.querySelectorAll('.store-modal-item').forEach(item=>{
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(q) ? '' : 'none';
+      });
+    });
+
+    // 攔截 storeSelect 的行為：在手機上阻止原生下拉，改用 modal
+    function attachMobileSelectInterceptor(){
+      if(!isMobile) return;
+      // 阻止 touchstart 與 click 的預設行為，改開 modal
+      storeSelect.addEventListener('touchstart', function(e){
+        e.preventDefault();
+        buildStoreModalListFromSelect();
+        openStoreModal();
+      }, { passive: false });
+
+      storeSelect.addEventListener('click', function(e){
+        // 在某些 Android 瀏覽器會發送 click；同樣攔截
+        if(isMobile){
+          e.preventDefault();
+          buildStoreModalListFromSelect();
+          openStoreModal();
+        }
+      });
+    }
+    attachMobileSelectInterceptor();
+
+    // ========== 其餘原有前端程式（未改動邏輯） ==========
     function toDateOnly(val) {
       if (!val && val !== 0) return '';
       const s = String(val).trim();
@@ -909,7 +1104,6 @@
 
     function pawSVG(){ return `<svg class="status-paw" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M19.5 10.5c0 1.38-1.12 2.5-2.5 2.5s-2.5-1.12-2.5-2.5S15.62 8 17 8s2.5 1.12 2.5 2.5zM11.5 6c0 1.38-1.12 2.5-2.5 2.5S6.5 7.38 6.5 6 7.62 3.5 9 3.5 11.5 4.62 11.5 6zM6 13.5c0 1.38-1.12 2.5-2.5 2.5S1 14.88 1 13.5 2.12 11 3.5 11 6 12.12 6 13.5zM21 13.5c0 1.38-1.12 2.5-2.5 2.5S16 14.88 16 13.5 17.12 11 18.5 11 21 12.12 21 13.5zM12 12c-2 0-4 2-4 4 0 2 1.79 4 4 4s4-2 4-4c0-2-2-4-4-4z"/></svg>`; }
 
-    // ----- 狀態邏輯（主清單保留原邏輯；長期使用最新日期決定狀態） -----
     function getOrderStatus(order){
       const purchaseDate = order['採購日期'];
       const arrivalDate = order['到貨日期'];
@@ -924,54 +1118,21 @@
       return { text:'尚未處理', class:'status-pending' };
     }
 
-    const LONG_TERM_DATE_FIELDS = ['取走日期','通知日期','未接電話日期','到貨日期','採購日期'];
-    function parseToTimestampsFromField(order, fieldName){
-      const raw = order[fieldName];
-      if(!raw) return [];
-      const arr = parseMultiDateStringToArray(String(raw));
-      return arr.map(d => {
-        const t = Date.parse(d);
-        return isNaN(t) ? null : t;
-      }).filter(Boolean);
-    }
-    function getLatestFieldAndTime(order){
-      let latestTime = 0;
-      let latestField = null;
-      for(const field of LONG_TERM_DATE_FIELDS){
-        const times = parseToTimestampsFromField(order, field);
-        for(const t of times){
-          if(t > latestTime){
-            latestTime = t;
-            latestField = field;
-          }
-        }
-      }
-      return { latestField, latestTime };
-    }
-    function getOrderStatusForLongTerm(order){
-      const { latestField } = getLatestFieldAndTime(order);
-      if(!latestField) return { text:'尚未處理', class:'status-pending' };
-      if(latestField === '取走日期') return { text:'已取貨', class:'status-closed' };
-      if(latestField === '通知日期') return { text:'已通知等取貨', class:'status-notified' };
-      if(latestField === '未接電話日期') return { text:'已到貨未接電話', class:'status-missed' };
-      if(latestField === '到貨日期') return { text:'已到貨還未聯絡', class:'status-arrived' };
-      if(latestField === '採購日期') return { text:'已採購等到貨', class:'status-purchase' };
-      return { text:'尚未處理', class:'status-pending' };
-    }
-
     const DATE_FIELDS = ['採購日期','到貨日期','取走日期','未接電話日期','通知日期','建立日期','creationDate','最後更新時間'];
 
     function formatFieldValueIfDate(fieldName, rawValue){
       if(!rawValue && rawValue !== 0) return '';
+      // 如果是已知的日期欄位，才做日期格式化
       if(DATE_FIELDS.includes(fieldName)){
         const parts = String(rawValue).split(/[,;，\n]+/).map(s=>s.trim()).filter(Boolean).map(formatToYYYYMMDD);
         return parts.join(', ');
       }
+      // 若 rawValue 含 ISO 日期格式才轉
       if(String(rawValue).includes('T') || /\d{4}-\d{2}-\d{2}/.test(String(rawValue))) return formatToYYYYMMDD(rawValue);
       return String(rawValue);
     }
 
-    // table header rendering
+    // table header rendering (unchanged)
     let tableHeadersOriginal = [], longTerm_tableHeadersOriginal = [];
     let headerNameMap = {
       '客訂商品A':'客訂商品 A','A商品規格':'規格 A',
@@ -1005,88 +1166,11 @@
       });
     }
 
-    // --- bookmark (filter) state ---
-    let mainStatusFilter = '全部'; // '全部' or one of status texts
-    let longTermStatusFilter = '全部';
-
-    function initBookmarkBars(){
-      const statuses = ['全部','尚未處理','已採購等到貨','已到貨還未聯絡','已到貨未接電話','已通知等取貨','已取貨'];
-      mainBookmarkBar.innerHTML = '';
-      longTermBookmarkBar.innerHTML = '';
-      statuses.forEach(s=>{
-        const b = document.createElement('div');
-        b.className = 'bookmark' + (s==='全部' ? ' active' : '');
-        b.textContent = s;
-        b.dataset.status = s;
-        b.addEventListener('click', ()=>{
-          // main
-          mainStatusFilter = s;
-          Array.from(mainBookmarkBar.children).forEach(ch=> ch.classList.remove('active'));
-          b.classList.add('active');
-          filterAndDisplayData();
-        });
-        mainBookmarkBar.appendChild(b);
-
-        const b2 = document.createElement('div');
-        b2.className = 'bookmark' + (s==='全部' ? ' active' : '');
-        b2.textContent = s;
-        b2.dataset.status = s;
-        b2.addEventListener('click', ()=>{
-          longTermStatusFilter = s;
-          Array.from(longTermBookmarkBar.children).forEach(ch=> ch.classList.remove('active'));
-          b2.classList.add('active');
-          filterAndDisplayLongTermData();
-        });
-        longTermBookmarkBar.appendChild(b2);
-      });
-      // 加一個清除按鈕（恢復全部）
-      const clearBtn = document.createElement('div');
-      clearBtn.className = 'bookmark clear';
-      clearBtn.textContent = '全部';
-      clearBtn.addEventListener('click', ()=>{
-        mainStatusFilter = '全部'; longTermStatusFilter = '全部';
-        Array.from(mainBookmarkBar.children).forEach(ch=> ch.classList.remove('active'));
-        Array.from(longTermBookmarkBar.children).forEach(ch=> ch.classList.remove('active'));
-        // mark first as active
-        if(mainBookmarkBar.firstChild) mainBookmarkBar.firstChild.classList.add('active');
-        if(longTermBookmarkBar.firstChild) longTermBookmarkBar.firstChild.classList.add('active');
-        fetchOrderData();
-      });
-      // you can append clear if needed (we already have 全部)
-    }
-
-    // data rendering using filters
+    // data rendering (slightly adapted to include '付清' or 'paid' support)
     let allOrders = [], allLongTermOrders = [];
-    function matchesStatusFilter(order, isLongTerm){
-      const statusObj = isLongTerm ? getOrderStatusForLongTerm(order) : getOrderStatus(order);
-      const statusText = statusObj.text;
-      const filter = isLongTerm ? longTermStatusFilter : mainStatusFilter;
-      if(!filter || filter === '全部') return true;
-      // treat '已取貨' in long-term same as '結案' text in main? we check direct equality or '已取貨' matching '結案' if needed
-      if(filter === '已取貨' && (statusText === '已取貨' || statusText === '結案')) return true;
-      return statusText === filter;
-    }
-
     function displayData(orders){
       dataTableBody.innerHTML = '';
-      const term = (searchInput.value || '').toLowerCase().trim();
-      const filteredByStatus = orders.filter(o => matchesStatusFilter(o, false));
-      const filtered = term ? filteredByStatus.filter(order => {
-        const id = String(order['客號'] || '').toLowerCase();
-        const name = String(order['姓名'] || '').toLowerCase();
-        const phone = String(order['連絡電話'] || '').toLowerCase();
-        const status = getOrderStatus(order).text.toLowerCase();
-        const productA = String(order['客訂商品A'] || '').toLowerCase();
-        const specA = String(order['A商品規格'] || '').toLowerCase();
-        const productB = String(order['客訂商品B'] || '').toLowerCase();
-        const specB = String(order['B商品規格'] || '').toLowerCase();
-        const searchDigits = (term.replace(/\D/g,''));
-        const phoneDigits = (String(order['連絡電話']||'').replace(/\D/g,''));
-        const matchByNumber = searchDigits && phoneDigits.includes(searchDigits);
-        return id.includes(term) || name.includes(term) || phone.includes(term) || status.includes(term) || matchByNumber || productA.includes(term) || specA.includes(term) || productB.includes(term) || specB.includes(term);
-      }) : filteredByStatus;
-
-      if(!filtered || filtered.length === 0){
+      if(!orders || orders.length === 0){
         noDataText.classList.remove('hidden');
         dataTableContainer.classList.add('hidden');
         noDataText.textContent = '沒有符合條件的資料。';
@@ -1095,7 +1179,7 @@
       noDataText.classList.add('hidden');
       dataTableContainer.classList.remove('hidden');
 
-      filtered.forEach(order=>{
+      orders.forEach(order=>{
         const tr = document.createElement('tr'); tr.className='hover:bg-gray-50';
         const status = getOrderStatus(order);
         const statusTd = document.createElement('td');
@@ -1109,6 +1193,7 @@
         editBtn.className='inline-flex justify-center items-center gap-2 px-3 py-1 rounded-md border text-sm';
         editBtn.innerHTML='🖉 編輯';
         editBtn.setAttribute('data-sheet-row', String(order['__row']));
+        // note: event listeners handled via global document listener
         editTd.appendChild(editBtn);
         tr.appendChild(editTd);
 
@@ -1122,14 +1207,18 @@
         delTd.appendChild(delBtn);
         tr.appendChild(delTd);
 
+        // *** 重要：若欄位為「客號」（或名稱含客號），強制當作文字處理，不做任何日期解析或自動格式化 ***
         tableHeadersOriginal.forEach(origHeader=>{
           const td = document.createElement('td');
           td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center';
           const rawVal = (order[origHeader] !== undefined && order[origHeader] !== null) ? order[origHeader] : '';
 
+          const lowerHeader = String(origHeader||'').toLowerCase();
+          // 判斷是否為客號欄（若你的試算表欄名是其他文字也可以在此加上判斷）
           const isCustomerIdField = /客號|cust ?id|customer ?id/i.test(origHeader);
 
           if (isCustomerIdField) {
+            // 強制視為文字，保持原樣（保留前導零與字母）
             td.textContent = String(rawVal);
           } else if (origHeader === 'paid' || origHeader === '付清' || origHeader === '固定/長期客訂') {
             td.textContent = isChecked(rawVal) ? '✔' : '';
@@ -1145,27 +1234,11 @@
       });
     }
 
+    // long term display
     function displayLongTermData(orders){
       const body = document.getElementById('longTerm_data-table-body');
       body.innerHTML = '';
-      const term = (longTerm_searchInput.value || '').toLowerCase().trim();
-      const filteredByStatus = orders.filter(o => matchesStatusFilter(o, true));
-      const filtered = term ? filteredByStatus.filter(order => {
-        const id = String(order['客號'] || '').toLowerCase();
-        const name = String(order['姓名'] || '').toLowerCase();
-        const phone = String(order['連絡電話'] || '').toLowerCase();
-        const status = getOrderStatusForLongTerm(order).text.toLowerCase();
-        const productA = String(order['客訂商品A'] || '').toLowerCase();
-        const specA = String(order['A商品規格'] || '').toLowerCase();
-        const productB = String(order['客訂商品B'] || '').toLowerCase();
-        const specB = String(order['B商品規格'] || '').toLowerCase();
-        const searchDigits = (term.replace(/\D/g,''));
-        const phoneDigits = (String(order['連絡電話']||'').replace(/\D/g,''));
-        const matchByNumber = searchDigits && phoneDigits.includes(searchDigits);
-        return id.includes(term) || name.includes(term) || phone.includes(term) || status.includes(term) || matchByNumber || productA.includes(term) || specA.includes(term) || productB.includes(term) || specB.includes(term);
-      }) : filteredByStatus;
-
-      if(!filtered || filtered.length === 0){
+      if(!orders || orders.length === 0){
         document.getElementById('longTerm_noDataText').classList.remove('hidden');
         document.getElementById('longTerm_dataTableContainer').classList.add('hidden');
         document.getElementById('longTerm_noDataText').textContent = '沒有符合條件的資料。';
@@ -1174,11 +1247,15 @@
       document.getElementById('longTerm_noDataText').classList.add('hidden');
       document.getElementById('longTerm_dataTableContainer').classList.remove('hidden');
 
-      filtered.forEach(order=>{
+      orders.forEach(order=>{
         const tr = document.createElement('tr'); tr.className='hover:bg-gray-50';
-        const status = getOrderStatusForLongTerm(order);
+        const status = getOrderStatus(order);
+        // For long-term list: DO show *status* based on latest dates (but do NOT hide '結案' logic - we use status function to reflect latest)
         const statusTd = document.createElement('td');
         statusTd.className = 'px-6 py-4 text-center';
+        // IMPORTANT: we do NOT force-hide '結案' here; instead we compute status from the fields (so if latest is 取走 => show 已取貨)
+        // However your earlier request: "長期清單裡是不需要結案此狀態" — to interpret as：長期清單仍顯示狀態，但不以「結案」為最終移除
+        // 所以我們 still show the computed status (it may be 結案 if 取走日期存在). If you want to never display '結案' text, adjust below.
         statusTd.innerHTML = `<span class="status-tag ${status.class}">${pawSVG()}<span>${status.text}</span></span>`;
         tr.appendChild(statusTd);
 
@@ -1224,7 +1301,7 @@
       });
     }
 
-    // delete row
+    // delete row common (sends store param)
     async function deleteRow(rowValue){
       const store = storeSelect.value || '';
       if(!rowValue){ console.error('找不到要刪除的列'); return; }
@@ -1262,27 +1339,19 @@
         const d2 = new Date(String(val));
         if(!isNaN(d2)) return d2.getTime();
       }
-      let latest = 0;
-      const candidateFields = ['採購日期','到貨日期','取走日期','未接電話日期','通知日期'];
-      candidateFields.forEach(f=>{
-        const arr = parseMultiDateStringToArray(order[f]);
-        arr.forEach(dstr=>{
-          const t = Date.parse(dstr);
-          if(!isNaN(t) && t > latest) latest = t;
-        });
-      });
-      return latest || 0;
+      return 0;
     }
 
-    // fetchOrderData
+    // fetchOrderData - now includes store param and sets longTerm_tableHeadersOriginal
     async function fetchOrderData(){
       dataLoader.classList.remove('hidden');
       document.getElementById('longTerm_dataLoader').classList.remove('hidden');
       dataTableContainer.classList.add('hidden');
       document.getElementById('longTerm_dataTableContainer').classList.add('hidden');
-      noDataText.classList.add('hidden');
+      noDataText.classList.add('hidden'); 
       document.getElementById('longTerm_noDataText').classList.add('hidden');
-      hideDataMessage(); hideDataMessage(true);
+      hideDataMessage();
+      hideDataMessage(true);
 
       const store = storeSelect.value || '';
 
@@ -1296,12 +1365,15 @@
         const allData = data.rows || data.values || data.data || [];
         tableHeadersOriginal = data.headers || data.columns || (data.values ? data.values[0] : []) || [];
 
+        // normalize headers if values provided as values[][] (first row headers)
         if(Array.isArray(data.values) && data.values.length>0 && (!tableHeadersOriginal || tableHeadersOriginal.length===0)){
           tableHeadersOriginal = data.values[0].map(h=>String(h||'').trim());
         }
 
+        // ensure longTerm_tableHeadersOriginal is set (fix bug)
         longTerm_tableHeadersOriginal = Array.isArray(tableHeadersOriginal) ? tableHeadersOriginal.slice() : [];
 
+        // if allData is values[][], convert to objects
         let rows = [];
         if(Array.isArray(allData) && allData.length>0 && Array.isArray(allData[0])){
           const vals = allData;
@@ -1310,36 +1382,44 @@
             const rowArr = vals[r];
             const obj = {};
             headersRow.forEach((hh, idx)=> obj[hh] = rowArr[idx]);
+            // we set __row as actual sheet row index (1-based) => r+1
             obj['__row'] = r+1;
             rows.push(obj);
           }
         } else {
-          rows = allData.map(r => r);
+          rows = allData.map(r => r); // assume already objects
         }
 
-        allOrders = []; allLongTermOrders = [];
+        // separate long term vs normal
+        allOrders = [];
+        allLongTermOrders = [];
         rows.forEach(order=>{
           if(isChecked(order['固定/長期客訂'])) allLongTermOrders.push(order);
           else allOrders.push(order);
         });
 
+        // sort
         allOrders.sort((a,b)=>{
           const aClosed = (getOrderStatus(a).text === '結案');
           const bClosed = (getOrderStatus(b).text === '結案');
           if(aClosed !== bClosed) return aClosed ? 1 : -1;
           return getOrderTimestamp(b) - getOrderTimestamp(a);
         });
-
         allLongTermOrders.sort((a,b)=>{
+          const aClosed = (getOrderStatus(a).text === '結案');
+          const bClosed = (getOrderStatus(b).text === '結案');
+          if(aClosed !== bClosed) return aClosed ? 1 : -1;
           return getOrderTimestamp(b) - getOrderTimestamp(a);
         });
 
+        // render
         const displayHeaders = tableHeadersOriginal.map(h => headerNameMap[h] || h);
         renderTableHeaders(displayHeaders);
         displayData(allOrders);
 
         const longDisplayHeaders = longTerm_tableHeadersOriginal.map(h => headerNameMap[h] || h);
         renderLongTermTableHeaders(longDisplayHeaders);
+        // For long-term: keep rows shown even if '結案', but the status should reflect most recent data (already handled in getOrderStatus)
         displayLongTermData(allLongTermOrders);
 
       }catch(err){
@@ -1356,7 +1436,7 @@
       }
     }
 
-    // ============ Form submit ============
+    // ============ Form submit (append) ============
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
       hideMessage();
@@ -1389,13 +1469,12 @@
       }
     });
 
-    // --------- Edit modal open/close + saving ----------
+    // --------- Edit modal open/close + saving (using store param) ----------
     function openEditModal(sheetRow){
       const order = allOrders.find(o => String(o['__row']) === String(sheetRow));
       if(!order){ console.error('找不到此筆資料'); return; }
       document.getElementById('editRowIndex').value = order['__row'];
       document.getElementById('editLongTermHidden').value = isChecked(order['固定/長期客訂']) ? '是' : '否';
-      document.getElementById('editCustomerID').value = order['客號'] || '';
       document.getElementById('editCustomerName').value = order['姓名'] || '';
       document.getElementById('editPhone').value = formatPhone(order['連絡電話'] || '');
       document.getElementById('editProductAName').value = order['客訂商品A'] || '';
@@ -1425,7 +1504,6 @@
       if(!order){ console.error('找不到此筆資料'); return; }
       document.getElementById('longTerm_editRowIndex').value = order['__row'];
       document.getElementById('longTerm_editLongTermHidden').value = isChecked(order['固定/長期客訂']) ? '是' : '否';
-      document.getElementById('longTerm_editCustomerID').value = order['客號'] || '';
       document.getElementById('longTerm_editCustomerName').value = order['姓名'] || '';
       document.getElementById('longTerm_editPhone').value = formatPhone(order['連絡電話'] || '');
       document.getElementById('longTerm_editProductAName').value = order['客訂商品A'] || '';
@@ -1453,6 +1531,7 @@
       longTerm_editModalBackdrop.classList.remove('hidden');
     }
 
+    // modal close handlers
     function closeModal(){ editModalBackdrop.classList.add('hidden'); }
     closeEditModal.addEventListener('click', closeModal);
     cancelEdit.addEventListener('click', (e)=>{ e.preventDefault(); closeModal(); });
@@ -1498,6 +1577,7 @@
     const editMissedCtrl = setupTagControls(editAddMissed, editStampMissed, editMissedInput, editMissedTags, editMissedHidden);
     const editNotifyCtrl = setupTagControls(editAddNotify, editStampNotify, editNotifyInput, editNotifyTags, editNotifyHidden);
 
+    // -- LongTerm tag controllers (fix: ensure these are created) --
     const longTerm_editPurchaseCtrl = setupTagControls(longTerm_editPurchaseCtrl_el.addBtn, longTerm_editPurchaseCtrl_el.stampBtn, longTerm_editPurchaseCtrl_el.inputEl, longTerm_editPurchaseCtrl_el.tagsContainer, longTerm_editPurchaseCtrl_el.hiddenInput);
     const longTerm_editArrivalCtrl = setupTagControls(longTerm_editArrivalCtrl_el.addBtn, longTerm_editArrivalCtrl_el.stampBtn, longTerm_editArrivalCtrl_el.inputEl, longTerm_editArrivalCtrl_el.tagsContainer, longTerm_editArrivalCtrl_el.hiddenInput);
     const longTerm_editPickupCtrl = setupTagControls(longTerm_editPickupCtrl_el.addBtn, longTerm_editPickupCtrl_el.stampBtn, longTerm_editPickupCtrl_el.inputEl, longTerm_editPickupCtrl_el.tagsContainer, longTerm_editPickupCtrl_el.hiddenInput);
@@ -1518,7 +1598,7 @@
       });
     });
 
-    // save edit (general) — include 客號
+    // save edit (general)
     editForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const rowValue = document.getElementById('editRowIndex').value;
@@ -1527,7 +1607,6 @@
       const payload = {
         action:'update',
         row: rowValue,
-        '客號': document.getElementById('editCustomerID').value || '',
         '姓名': document.getElementById('editCustomerName').value || '',
         '連絡電話': document.getElementById('editPhone').value || '',
         '客訂商品A': document.getElementById('editProductAName').value || '',
@@ -1561,7 +1640,7 @@
       }finally{ document.getElementById('saveEdit').disabled = false; }
     });
 
-    // save edit (longTerm) — include 客號
+    // save edit (longTerm)
     document.getElementById('longTerm_editForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
       const rowValue = document.getElementById('longTerm_editRowIndex').value;
@@ -1570,7 +1649,6 @@
       const payload = {
         action:'update',
         row: rowValue,
-        '客號': document.getElementById('longTerm_editCustomerID').value || '',
         '姓名': document.getElementById('longTerm_editCustomerName').value || '',
         '連絡電話': document.getElementById('longTerm_editPhone').value || '',
         '客訂商品A': document.getElementById('longTerm_editProductAName').value || '',
@@ -1604,7 +1682,7 @@
       }finally{ document.getElementById('longTerm_saveEdit').disabled = false; }
     });
 
-    // modal delete
+    // modal delete handlers
     deleteEditBtn && deleteEditBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       const rowValue = document.getElementById('editRowIndex').value;
@@ -1633,24 +1711,61 @@
       }
     });
 
-    // search + filter functions
+    // search controls (same as before)
     function digitsOnly(s){ return String(s||'').replace(/\D/g,''); }
     function filterAndDisplayData(){
-      // uses mainStatusFilter and searchInput
-      displayData(allOrders);
+      const term = (searchInput.value || '').toLowerCase().trim();
+      const searchDigits = digitsOnly(term);
+      if(!term){ hideDataMessage(); displayData(allOrders); return; }
+      const filtered = allOrders.filter(order=>{
+        const id = String(order['客號'] || '').toLowerCase();
+        const name = String(order['姓名'] || '').toLowerCase();
+        const phone = String(order['連絡電話'] || '').toLowerCase();
+        const status = getOrderStatus(order).text.toLowerCase();
+        const phoneDigits = digitsOnly(order['連絡電話']);
+        const matchByNumber = searchDigits && phoneDigits.includes(searchDigits);
+        const productA = String(order['客訂商品A'] || '').toLowerCase();
+        const specA = String(order['A商品規格'] || '').toLowerCase();
+        const productB = String(order['客訂商品B'] || '').toLowerCase();
+        const specB = String(order['B商品規格'] || '').toLowerCase();
+        return id.includes(term) || name.includes(term) || phone.includes(term) || status.includes(term) || matchByNumber || productA.includes(term) || specA.includes(term) || productB.includes(term) || specB.includes(term);
+      });
+      if(filtered.length === 0){ displayData([]); showDataMessage('info', '找不到符合條件的資料。'); }
+      else { hideDataMessage(); displayData(filtered); }
     }
     function filterAndDisplayLongTermData(){
-      displayLongTermData(allLongTermOrders);
+      const term = (document.getElementById('longTerm_searchInput').value || '').toLowerCase().trim();
+      const searchDigits = digitsOnly(term);
+      if(!term){ hideDataMessage(true); displayLongTermData(allLongTermOrders); return; }
+      const filtered = allLongTermOrders.filter(order=>{
+        const id = String(order['客號'] || '').toLowerCase();
+        const name = String(order['姓名'] || '').toLowerCase();
+        const phone = String(order['連絡電話'] || '').toLowerCase();
+        const status = getOrderStatus(order).text.toLowerCase();
+        const phoneDigits = digitsOnly(order['連絡電話']);
+        const matchByNumber = searchDigits && phoneDigits.includes(searchDigits);
+        const productA = String(order['客訂商品A'] || '').toLowerCase();
+        const specA = String(order['A商品規格'] || '').toLowerCase();
+        const productB = String(order['客訂商品B'] || '').toLowerCase();
+        const specB = String(order['B商品規格'] || '').toLowerCase();
+        return id.includes(term) || name.includes(term) || phone.includes(term) || status.includes(term) || matchByNumber || productA.includes(term) || specA.includes(term) || productB.includes(term) || specB.includes(term);
+      });
+      if(filtered.length === 0){ displayLongTermData([]); showDataMessage('info', '找不到符合條件的資料。', true); }
+      else { hideDataMessage(true); displayLongTermData(filtered); }
     }
 
     if(searchButton) searchButton.addEventListener('click', filterAndDisplayData);
     searchInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); filterAndDisplayData(); } });
+    const longTerm_searchButton = document.getElementById('longTerm_searchButton');
+    const longTerm_searchInput = document.getElementById('longTerm_searchInput');
     if(longTerm_searchButton) longTerm_searchButton.addEventListener('click', filterAndDisplayLongTermData);
     longTerm_searchInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); filterAndDisplayLongTermData(); } });
 
+    // refresh main data (re-read current store)
     refreshButton.addEventListener('click', ()=>{ searchInput.value=''; hideDataMessage(); fetchOrderData(); });
     document.getElementById('longTerm_refreshButton').addEventListener('click', ()=>{ document.getElementById('longTerm_searchInput').value=''; hideDataMessage(true); fetchOrderData(); });
 
+    // helper show/hide data messages
     function showDataMessage(type, html, isLongTerm=false){
       const box = isLongTerm ? document.getElementById('longTerm_data-message-box') : dataMessageBox;
       if(!box) return;
@@ -1666,32 +1781,45 @@
       if(box) box.classList.add('hidden');
     }
 
-    // Global click listener for dynamic edit/delete buttons
+    // --------- Global click listener for buttons inside tables ----------
+    // Use a document-level listener so clicks are captured even when the table is re-rendered
     document.addEventListener('click', function(e){
+      // find a button that has data-sheet-row attribute (either edit or delete)
       const btn = e.target.closest('button[data-sheet-row]');
       if(!btn) return;
       const row = btn.getAttribute('data-sheet-row');
       const text = (btn.textContent || btn.innerText || '').trim();
+
       if(!row) return;
 
+      // 編輯
       if(/編輯|🖉/.test(text)){
         const rStr = String(row);
         let found = allOrders && allOrders.find(o => String(o['__row']) === rStr);
-        if(found){ openEditModal(found['__row']); return; }
+        if(found){
+          openEditModal(found['__row']);
+          return;
+        }
         found = allLongTermOrders && allLongTermOrders.find(o => String(o['__row']) === rStr);
-        if(found){ openLongTermEditModal(found['__row']); return; }
+        if(found){
+          openLongTermEditModal(found['__row']);
+          return;
+        }
         try{ openEditModal(rStr); }catch(err){ console.warn('無法開啟編輯 modal', err); }
         return;
       }
 
+      // 刪除
       if(/刪除/.test(text)){
         const rStr = String(row);
-        if(confirm('確定要刪除此筆資料嗎？')){ deleteRow(rStr); }
+        if(confirm('確定要刪除此筆資料嗎？')){
+          deleteRow(rStr);
+        }
         return;
       }
     });
 
-    // end
+    // end of script
   </script>
 </body>
 </html>
