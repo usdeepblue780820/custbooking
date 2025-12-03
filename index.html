@@ -176,7 +176,7 @@
                     <label for="phone" class="no-wrap-label w-28 text-sm font-medium text-gray-700">連絡電話</label>
                     <input id="phone" name="連絡電話" type="tel" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors" />
                   </div>
-                  <!-- 新增：警告文字容器 (預設隱藏) -->
+                  <!-- 警告文字容器 -->
                   <div id="phone-warning" class="text-red-600 text-sm font-bold pl-28 ml-3 hidden"></div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -388,26 +388,26 @@
         <button id="closeEditModal" class="btn" title="關閉">✕</button>
       </div>
       <form id="editForm" class="space-y-4">
-        <input type="hidden" id="editRowIndex" />
+        <input type="hidden" id="editRowIndex" name="row" />
         <input type="hidden" id="editLongTermHidden" /> 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label class="block text-sm font-medium text-gray-700">客號</label><input id="editCustomerID" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">姓名</label><input id="editCustomerName" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">連絡電話</label><input id="editPhone" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">客訂商品 A</label><input id="editProductAName" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">A 商品規格</label><input id="editProductASpec" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">A 数量</label><input id="editProductAQty" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">客訂商品 B</label><input id="editProductBName" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">B 商品規格</label><input id="editProductBSpec" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">B 數量</label><input id="editProductBQty" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">採購日期</label><div class="flex items-center mt-1"><input id="editPurchaseDate" type="date" class="flex-1 rounded-md border-gray-300" /><button type="button" class="btn date-action bg-blue-600 text-white flex-shrink-0" data-target="editPurchaseDate">標記今天</button></div></div>
-          <div><label class="block text-sm font-medium text-gray-700">到貨日期</label><div class="flex items-center mt-1"><input id="editArrivalDate" type="date" class="flex-1 rounded-md border-gray-300" /><button type="button" class="btn date-action bg-blue-600 text-white flex-shrink-0" data-target="editArrivalDate">標記今天</button></div></div>
-          <div><label class="block text-sm font-medium text-gray-700">取走日期</label><div class="flex items-center mt-1"><input id="editPickupDate" type="date" class="flex-1 rounded-md border-gray-300" /><button type="button" class="btn date-action bg-blue-600 text-white flex-shrink-0" data-target="editPickupDate">標記今天</button></div></div>
-          <div><label class="block text-sm font-medium text-gray-700">分店調撥</label><input id="editStoreTransfer" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">客號</label><input id="editCustomerID" name="客號" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">姓名</label><input id="editCustomerName" name="姓名" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">連絡電話</label><input id="editPhone" name="連絡電話" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">客訂商品 A</label><input id="editProductAName" name="客訂商品A" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">A 商品規格</label><input id="editProductASpec" name="A商品規格" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">A 数量</label><input id="editProductAQty" name="A數量" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">客訂商品 B</label><input id="editProductBName" name="客訂商品B" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">B 商品規格</label><input id="editProductBSpec" name="B商品規格" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">B 數量</label><input id="editProductBQty" name="B數量" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">採購日期</label><div class="flex items-center mt-1"><input id="editPurchaseDate" name="採購日期" type="date" class="flex-1 rounded-md border-gray-300" /><button type="button" class="btn date-action bg-blue-600 text-white flex-shrink-0" data-target="editPurchaseDate">標記今天</button></div></div>
+          <div><label class="block text-sm font-medium text-gray-700">到貨日期</label><div class="flex items-center mt-1"><input id="editArrivalDate" name="到貨日期" type="date" class="flex-1 rounded-md border-gray-300" /><button type="button" class="btn date-action bg-blue-600 text-white flex-shrink-0" data-target="editArrivalDate">標記今天</button></div></div>
+          <div><label class="block text-sm font-medium text-gray-700">取走日期</label><div class="flex items-center mt-1"><input id="editPickupDate" name="取走日期" type="date" class="flex-1 rounded-md border-gray-300" /><button type="button" class="btn date-action bg-blue-600 text-white flex-shrink-0" data-target="editPickupDate">標記今天</button></div></div>
+          <div><label class="block text-sm font-medium text-gray-700">分店調撥</label><input id="editStoreTransfer" name="分店調撥" class="mt-1 w-full rounded-md border-gray-300" /></div>
           <div class="md:col-span-2 flex items-center gap-3"><label class="no-wrap-label text-sm font-medium text-gray-700">付清</label><input id="editPaid" name="paid" type="checkbox" value="是" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">未接電話日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="editMissedInput" type="date" class="rounded-md border-gray-300" /><button id="editAddMissed" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="editStampMissed" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="editMissedTags" class="mt-2"></div><input type="hidden" id="editMissedHidden" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">通知日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="editNotifyInput" type="date" class="rounded-md border-gray-300" /><button id="editAddNotify" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="editStampNotify" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="editNotifyTags" class="mt-2"></div><input type="hidden" id="editNotifyHidden" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">備註</label><textarea id="editNotes" rows="3" class="mt-1 w-full rounded-md border-gray-300"></textarea></div>
+          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">未接電話日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="editMissedInput" type="date" class="rounded-md border-gray-300" /><button id="editAddMissed" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="editStampMissed" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="editMissedTags" class="mt-2"></div><input type="hidden" id="editMissedHidden" name="未接電話日期" /></div>
+          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">通知日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="editNotifyInput" type="date" class="rounded-md border-gray-300" /><button id="editAddNotify" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="editStampNotify" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="editNotifyTags" class="mt-2"></div><input type="hidden" id="editNotifyHidden" name="通知日期" /></div>
+          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">備註</label><textarea id="editNotes" name="備註" rows="3" class="mt-1 w-full rounded-md border-gray-300"></textarea></div>
         </div>
         <div class="flex justify-end gap-3 pt-2">
           <button type="button" id="cancelEdit" class="btn" style="background:#f3f4f6;border-radius:6px;">取消</button>
@@ -425,26 +425,26 @@
         <button id="longTerm_closeEditModal" class="btn" title="關閉">✕</button>
       </div>
       <form id="longTerm_editForm" class="space-y-4">
-        <input type="hidden" id="longTerm_editRowIndex" />
+        <input type="hidden" id="longTerm_editRowIndex" name="row" />
         <input type="hidden" id="longTerm_editLongTermHidden" /> 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label class="block text-sm font-medium text-gray-700">客號</label><input id="longTerm_editCustomerID" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">姓名</label><input id="longTerm_editCustomerName" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">連絡電話</label><input id="longTerm_editPhone" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">客訂商品 A</label><input id="longTerm_editProductAName" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">A 商品規格</label><input id="longTerm_editProductASpec" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">A 数量</label><input id="longTerm_editProductAQty" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">客訂商品 B</label><input id="longTerm_editProductBName" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">B 商品規格</label><input id="longTerm_editProductBSpec" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">B 數量</label><input id="longTerm_editProductBQty" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">分店調撥</label><input id="longTerm_editStoreTransfer" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">客號</label><input id="longTerm_editCustomerID" name="客號" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">姓名</label><input id="longTerm_editCustomerName" name="姓名" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">連絡電話</label><input id="longTerm_editPhone" name="連絡電話" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">客訂商品 A</label><input id="longTerm_editProductAName" name="客訂商品A" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">A 商品規格</label><input id="longTerm_editProductASpec" name="A商品規格" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">A 数量</label><input id="longTerm_editProductAQty" name="A數量" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">客訂商品 B</label><input id="longTerm_editProductBName" name="客訂商品B" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">B 商品規格</label><input id="longTerm_editProductBSpec" name="B商品規格" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">B 數量</label><input id="longTerm_editProductBQty" name="B數量" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" /></div>
+          <div><label class="block text-sm font-medium text-gray-700">分店調撥</label><input id="longTerm_editStoreTransfer" name="分店調撥" class="mt-1 w-full rounded-md border-gray-300" /></div>
           <div class="md:col-span-1 flex items-center gap-3"><label class="no-wrap-label text-sm font-medium text-gray-700">付清</label><input id="longTerm_editPaid" name="paid" type="checkbox" value="是" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">採購日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editPurchaseInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddPurchase" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampPurchase" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editPurchaseTags" class="mt-2"></div><input type="hidden" id="longTerm_editPurchaseHidden" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">到貨日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editArrivalInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddArrival" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampArrival" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editArrivalTags" class="mt-2"></div><input type="hidden" id="longTerm_editArrivalHidden" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">取走日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editPickupInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddPickup" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampPickup" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editPickupTags" class="mt-2"></div><input type="hidden" id="longTerm_editPickupHidden" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">通知日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editNotifyInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddNotify" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampNotify" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editNotifyTags" class="mt-2"></div><input type="hidden" id="longTerm_editNotifyHidden" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">未接電話日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editMissedInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddMissed" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampMissed" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editMissedTags" class="mt-2"></div><input type="hidden" id="longTerm_editMissedHidden" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">備註</label><textarea id="longTerm_editNotes" rows="3" class="mt-1 w-full rounded-md border-gray-300"></textarea></div>
+          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">採購日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editPurchaseInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddPurchase" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampPurchase" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editPurchaseTags" class="mt-2"></div><input type="hidden" id="longTerm_editPurchaseHidden" name="採購日期" /></div>
+          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">到貨日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editArrivalInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddArrival" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampArrival" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editArrivalTags" class="mt-2"></div><input type="hidden" id="longTerm_editArrivalHidden" name="到貨日期" /></div>
+          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">取走日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editPickupInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddPickup" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampPickup" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editPickupTags" class="mt-2"></div><input type="hidden" id="longTerm_editPickupHidden" name="取走日期" /></div>
+          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">通知日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editNotifyInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddNotify" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampNotify" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editNotifyTags" class="mt-2"></div><input type="hidden" id="longTerm_editNotifyHidden" name="通知日期" /></div>
+          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">未接電話日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editMissedInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddMissed" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampMissed" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editMissedTags" class="mt-2"></div><input type="hidden" id="longTerm_editMissedHidden" name="未接電話日期" /></div>
+          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">備註</label><textarea id="longTerm_editNotes" name="備註" rows="3" class="mt-1 w-full rounded-md border-gray-300"></textarea></div>
         </div>
         <div class="flex justify-end gap-3 pt-2">
           <button type="button" id="longTerm_cancelEdit" class="btn" style="background:#f3f4f6;border-radius:6px;">取消</button>
@@ -910,7 +910,7 @@
         delBtn.style.background = '#ef4444'; delBtn.style.color = 'white';
         delBtn.innerHTML = '刪除';
         delBtn.dataset.sheetRow = order['__row'];
-        delBtn.addEventListener('click', ()=> { deleteRow(order['__row']); });
+        delBtn.addEventListener('click', ()=> { deleteRow(order['__row'], delBtn); });
         delTd.appendChild(delBtn);
         tr.appendChild(delTd);
 
@@ -970,7 +970,7 @@
         delBtn.style.background = '#ef4444'; delBtn.style.color = 'white';
         delBtn.innerHTML = '刪除';
         delBtn.setAttribute('data-sheet-row', String(order['__row']));
-        delBtn.addEventListener('click', ()=> { deleteRow(order['__row']); });
+        delBtn.addEventListener('click', ()=> { deleteRow(order['__row'], delBtn); });
         delTd.appendChild(delBtn);
         tr.appendChild(delTd);
 
@@ -1120,9 +1120,19 @@
       } catch (e) { console.error('Fetch blacklist failed:', e); } finally { blacklistDataLoader.classList.add('hidden'); }
     }
 
-    async function deleteRow(rowValue){
+    async function deleteRow(rowValue, btnElement){
       const store = storeSelect.value || '';
       if(!rowValue){ console.error('找不到要刪除的列'); return; }
+      
+      // UI Feedback
+      let originalText = '刪除';
+      if(btnElement){
+        originalText = btnElement.textContent;
+        btnElement.disabled = true;
+        btnElement.textContent = '刪除中...';
+        btnElement.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+
       try {
         const fd = new FormData();
         fd.append('action', 'delete');
@@ -1138,7 +1148,16 @@
         }
       } catch(err){
         console.error('刪除失敗:', err);
-        showMessage('error','<strong>刪除失敗：</strong>' + err.message);
+        let msg = err.message;
+        if(msg.includes('row 不正確')) msg += ' (資料可能已過期，請重新整理)';
+        showMessage('error','<strong>刪除失敗：</strong>' + msg);
+        
+        // Revert button if failed
+        if(btnElement){
+          btnElement.disabled = false;
+          btnElement.textContent = originalText;
+          btnElement.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
       }
     }
 
@@ -1444,6 +1463,47 @@
       }
     });
 
+    // Form Submit (重要：這是您之前遺失的「送出訂單」功能)
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const store = storeSelect.value;
+      if (!store) {
+        alert('請先選擇店別！');
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = '送出中...';
+      hideMessage();
+
+      try {
+        const fd = new FormData(form);
+        fd.append('action', 'append');
+        fd.append('store', store);
+
+        const resp = await fetch(SCRIPT_URL, { method: 'POST', body: fd });
+        const json = await resp.json();
+
+        if (json.result === 'success') {
+          showMessage('success', '<strong>成功：</strong> 訂單已送出。');
+          form.reset();
+          // Reset warning
+          phoneWarning.classList.add('hidden');
+          phoneInput.style.borderColor = '';
+          phoneInput.style.backgroundColor = '';
+          fetchOrderData();
+        } else {
+          throw new Error(json.error || '未知錯誤');
+        }
+      } catch (err) {
+        console.error(err);
+        showMessage('error', '<strong>送出失敗：</strong> ' + err.message);
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = '送出訂單';
+      }
+    });
+
     storeSelect.addEventListener('change', async ()=>{ 
       const store = storeSelect.value;
       if(store) localStorage.setItem('selected_store', store);
@@ -1482,7 +1542,7 @@
     longTerm_searchInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); filterAndDisplayLongTermData(); } });
     longTerm_refreshButton.addEventListener('click', ()=>{ longTerm_searchInput.value=''; hideDataMessage(true); fetchOrderData(); });
 
-    // 新增：清除逾期已取按鈕邏輯 (增強版)
+    // 新增：清除逾期已取按鈕邏輯 (增強版 + 分店防呆提示)
     if (clearOverdueBtn) {
       clearOverdueBtn.addEventListener('click', async () => {
         try {
@@ -1516,7 +1576,10 @@
             return;
           }
 
-          if (!confirm(`確定刪除「取走日期」距離今天超過 5 天的資料嗎?`)) {
+          // 取得目前選單的分店名稱，增加提示明確性
+          const storeName = storeSelect.options[storeSelect.selectedIndex]?.text || '目前分店';
+
+          if (!confirm(`確定刪除 ${storeName} 中，「取走日期」距離今天超過 5 天的資料嗎?`)) {
             return;
           }
 
@@ -1649,6 +1712,75 @@
         alert('刪除失敗：' + e.message);
       }
     }
+
+    // --- Order Edit Forms (NEWLY ADDED) ---
+    // Handle submission for the normal edit form
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const store = storeSelect.value;
+      if (!store) { alert('無法確認店別，請重新整理頁面'); return; }
+      
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; 
+      btn.textContent = '儲存中...';
+
+      try {
+        const fd = new FormData(e.target);
+        fd.append('action', 'update');
+        fd.append('store', store);
+
+        const resp = await fetch(SCRIPT_URL, { method: 'POST', body: fd });
+        const json = await resp.json();
+
+        if (json.result === 'success') {
+          alert('更新成功！');
+          editModalBackdrop.classList.add('hidden');
+          fetchOrderData();
+        } else {
+          alert('更新失敗：' + (json.error || '未知錯誤'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('更新失敗，請檢查網路。');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '儲存變更';
+      }
+    });
+
+    // Handle submission for the long-term edit form
+    document.getElementById('longTerm_editForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const store = storeSelect.value;
+      if (!store) { alert('無法確認店別，請重新整理頁面'); return; }
+      
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; 
+      btn.textContent = '儲存中...';
+
+      try {
+        const fd = new FormData(e.target);
+        fd.append('action', 'update');
+        fd.append('store', store);
+
+        const resp = await fetch(SCRIPT_URL, { method: 'POST', body: fd });
+        const json = await resp.json();
+
+        if (json.result === 'success') {
+          alert('更新成功！');
+          longTerm_editModalBackdrop.classList.add('hidden');
+          fetchOrderData();
+        } else {
+          alert('更新失敗：' + (json.error || '未知錯誤'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('更新失敗，請檢查網路。');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '儲存變更';
+      }
+    });
 
     // date target buttons
     document.querySelectorAll('[data-target]').forEach(btn=>{
