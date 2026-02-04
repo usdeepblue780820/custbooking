@@ -2,586 +2,721 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>客訂系統</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    :root { --label-w: 7.5rem; }
-    body { font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; }
-    .no-wrap-label { white-space: nowrap; display:block; }
-    
-    /* 表格外層滾動區 */
-    .table-container {
-      width: 100%;
-      max-height: 500px; 
-      overflow: auto;
-      position: relative;
-      -webkit-overflow-scrolling: touch;
-      pointer-events: auto;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
-      background-color: white;
+    body { 
+      font-family: "Noto Sans TC", system-ui, -apple-system, sans-serif; 
+      background-color: #f3f4f6;
+      color: #1f2937;
+      font-size: 15px;
     }
     
-    /* 表格設定 */
-    .table-container table { 
-      width: 100%; 
-      border-collapse: separate; 
-      border-spacing: 0; 
-    } 
+    /* === 核心：手機版卡片式表格 (RWD Table) === */
+    .responsive-table { width: 100%; border-collapse: separate; border-spacing: 0; }
     
-    /* 內容儲存格樣式 */
-    .table-container td {
-      background-color: white;
-      border-bottom: 1px solid #f3f4f6;
-      padding: 0.75rem 1rem;
-      font-size: 0.9rem;
-      color: #374151;
-      white-space: nowrap;
-      text-align: center;
-      vertical-align: middle;
+    @media (max-width: 768px) {
+      .responsive-table thead { display: none; }
+      
+      .responsive-table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #e5e7eb;
+        padding: 0.75rem;
+        position: relative;
+      }
+      
+      .responsive-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.4rem 0;
+        border-bottom: 1px solid #f3f4f6;
+        text-align: right;
+        font-size: 0.95rem;
+      }
+      .responsive-table td:last-child { border-bottom: none; }
+      
+      .responsive-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 0.85rem;
+        margin-right: 1rem;
+        text-align: left;
+        min-width: 80px; 
+      }
+      
+      .responsive-table td.mobile-full-width {
+        display: block;
+        text-align: left;
+      }
+      .responsive-table td.mobile-full-width::before {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
     }
 
-    /* 固定表頭樣式 */
-    .table-container th {
-      position: sticky;
-      top: 0;
-      z-index: 30;
-      background-color: #f3f4f6;
-      color: #111827;
-      font-weight: 700;
+    @media (min-width: 769px) {
+      .table-container {
+        border-radius: 0.5rem;
+        background: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+      .responsive-table th {
+        background-color: #f8fafc;
+        color: #475569;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e2e8f0;
+        white-space: nowrap;
+      }
+      .responsive-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        white-space: nowrap;
+        vertical-align: middle; 
+      }
+    }
+
+    /* === 元件樣式 === */
+    .btn { 
+      transition: all 0.2s; 
+      display: inline-flex; align-items: center; justify-content: center; 
+      font-weight: 500; border-radius: 0.5rem;
+    }
+    .btn:active { transform: scale(0.96); }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 999px;
+      font-size: 0.8rem; font-weight: 600;
+      white-space: nowrap;
+    }
+    .status-badge.pending { background:#f3f4f6; color:#4b5563; }
+    .status-badge.purchase { background:#e0e7ff; color:#4338ca; }
+    .status-badge.arrived { background:#f3e8ff; color:#7e22ce; }
+    .status-badge.missed { background:#ffedd5; color:#c2410c; }
+    .status-badge.notified { background:#e0f2fe; color:#0369a1; }
+    .status-badge.closed { background:#dcfce7; color:#15803d; }
+    
+    .tag { display:inline-flex; align-items:center; padding:0.1rem 0.5rem; margin:0.1rem; font-size:0.75rem; background:#fff; border:1px solid #d1d5db; color:#374151; border-radius:4px; }
+    .tag .remove { margin-left:0.25rem; cursor:pointer; font-weight:bold; color:#ef4444; }
+    .tag .remove:hover { color:#b91c1c; }
+
+    .tab-scroll-container {
+      display: flex; gap: 0.5rem; overflow-x: auto; 
+      padding-bottom: 0.5rem; margin-bottom: 0.5rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tab-btn {
+      padding: 0.4rem 0.8rem;
+      border-radius: 99px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      color: #4b5563;
       font-size: 0.85rem;
-      padding: 0.75rem 1rem;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .tab-btn.active {
+      background: #4f46e5;
+      color: white;
+      border-color: #4f46e5;
+      box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+    }
+
+    .modal-backdrop { 
+      background-color: rgba(0,0,0,0.5); 
+      backdrop-filter: blur(3px);
+    }
+    .modal-card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      max-height: 90vh;
+    }
+
+    .input-field {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.95rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background-color: #fff;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    
+    .input-field:disabled, .select-disabled {
+      background-color: #f3f4f6;
+      color: #9ca3af;
+      cursor: not-allowed;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #6b7280;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      border-bottom: 2px solid #e5e7eb;
-      white-space: nowrap;
-      text-align: center;
-      vertical-align: middle;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      margin-bottom: 0.5rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .section-title::after {
+      content: ""; flex: 1; height: 1px; background: #e5e7eb;
     }
 
-    /* 滑鼠懸停行效果 */
-    .table-container tr:hover td {
-      background-color: #f9fafb;
+    .loader {
+      border: 3px solid #f3f3f3; border-top: 3px solid #6366f1;
+      border-radius: 50%; width: 24px; height: 24px;
+      animation: spin 1s linear infinite;
     }
-    
-    .tag { display:inline-flex; align-items:center; padding:.25rem .75rem; margin:.25rem; font-size:.875rem; font-weight:500; background:#e5e7eb; color:#374151; border-radius:9999px; }
-    .tag .remove { margin-left:.5rem; cursor:pointer; font-weight:bold; color:#9ca3af; }
-    .tag .remove:hover { color:#374151; }
-    
-    .status-tag { display:inline-flex; align-items:center; gap:0.5rem; padding:0.25rem 0.75rem; border-radius:9999px; font-weight:600; font-size:0.875rem; }
-    .status-paw { display:inline-flex; width:16px; height:16px; align-items:center; justify-content:center; flex-shrink:0; }
-    .status-pending { background:#f3f4f6; color:#374151; }
-    .status-purchase { background:#eef2ff; color:#3730a3; }
-    .status-arrived { background:#f3e8ff; color:#6d28d9; }
-    .status-missed { background:#fff7ed; color:#b45309; }
-    .status-notified { background:#e0f2fe; color:#075985; }
-    .status-closed { background:#dcfce7; color:#166534; }
-    
-    .loader { border:4px solid #f3f4f3; border-top:4px solid #3b82f6; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:20px auto; }
-    @keyframes spin { 0%{ transform:rotate(0deg);} 100%{ transform:rotate(360deg);} }
-    
-    .product-grid { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:1rem; }
-    .product-field { display:flex; flex-direction:column; gap:0.5rem; }
-    @media (max-width: 768px) { .product-grid { grid-template-columns: 1fr; } }
-    @media (max-width:640px){ th, td { font-size: 12px; } }
-    
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; z-index:50; }
-    .modal { background:white; border-radius:8px; max-width:980px; width:95%; max-height:90vh; overflow:auto; padding:20px; box-shadow:0 8px 24px rgba(0,0,0,0.2); }
-    
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:0.5rem; padding:0.5rem 0.75rem; border-radius:6px; font-weight:600; cursor: pointer; }
-    .date-action { margin-left:0.5rem; }
-    .info-box { background:#e6f0ff; color:#054a91; padding:0.75rem 1rem; border-radius:6px; }
-    .phone-cell { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
-    td .inline-flex { height: 36px; align-items: center; justify-content:center; }
-    
-    header.site-header { display:flex; align-items:center; justify-content:center; gap:0.75rem; }
-    header.site-header h1 { margin:0; display:flex; align-items:center; gap:0.5rem; }
-    
-    .topbar { background:transparent; display:flex; gap:1rem; align-items:center; padding:1rem; border-radius:8px; }
-    .topbar .controls { display:flex; gap:0.75rem; align-items:center; }
-    .topbar .hint { color:#6b7280; font-size:0.95rem; }
-    .select-disabled { opacity:0.6; pointer-events:none; }
-    
-    /* 狀態書籤樣式 */
-    .status-tabs { display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
-    .status-tab { padding:0.5rem 0.75rem; border-radius:999px; background:#f3f4f6; cursor:pointer; font-weight:600; color:#374151; border:1px solid transparent; user-select:none; transition: all 0.2s; }
-    .status-tab.active { background:#4f46e5; color:white; border-color:#4338ca; box-shadow:0 2px 8px rgba(79,70,229,0.12); }
-    .status-tab.all { background:#111827; color:white; }
-    .status-tab:hover { opacity: 0.9; }
-    .status-tabs-scroll { overflow:auto; white-space:nowrap; -webkit-overflow-scrolling:touch; padding-bottom:6px; position: relative; z-index: 20; }
-    .status-tabs-scroll .status-tab { display:inline-block; white-space:normal; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* 黑名單警示橫幅 */
-    #blacklist-alert-bar {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background-color: #ef4444; color: white; padding: 1rem;
-      text-align: center; font-weight: bold; font-size: 1.1rem;
-      z-index: 9999; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
-      display: none; animation: slideUp 0.3s ease-out;
+    .accordion-content {
+      transition: grid-template-rows 0.3s ease-out;
+      display: grid;
+      grid-template-rows: 0fr;
     }
-    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .accordion-content.open {
+      grid-template-rows: 1fr;
+    }
+    .accordion-inner { 
+      overflow: hidden; 
+      min-height: 0;
+    }
+    .accordion-toggle {
+      width: 100%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      padding: 1rem 1.25rem; 
+      background-color: white; 
+      transition: background-color 0.2s;
+      border-left-width: 4px;
+    }
+    .accordion-toggle:hover { background-color: #f9fafb; }
+    .accordion-toggle.border-indigo-500 { border-left-color: #6366f1; }
+    .accordion-toggle.border-blue-500 { border-left-color: #3b82f6; }
+    .accordion-toggle.border-red-500 { border-left-color: #ef4444; }
+    .accordion-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* 捲動容器高度 */
+    #dataTableContainer, #longTerm_dataTableContainer, #blacklist_dataTableContainer, #historyDataContainer {
+      max-height: 750px;
+      overflow: auto;
+    }
   </style>
 </head>
-<body class="bg-gray-100 p-4 md:p-8">
+<body>
 
-  <header class="text-center mb-6">
-    <div class="max-w-7xl mx-auto site-header">
-      <h1 class="text-4xl font-extrabold text-gray-800 tracking-wide">🐾 <span>客訂系統</span></h1>
+  <!-- 頂部導航列 -->
+  <nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
+    <div class="w-full max-w-[96%] mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="bg-indigo-600 text-white p-1.5 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+        </div>
+        <h1 class="text-lg font-bold text-gray-800 tracking-tight">客訂系統</h1>
+      </div>
+      <div id="currentStoreBadge" class="hidden px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-medium"></div>
     </div>
-  </header>
+  </nav>
 
-  <div class="max-w-7xl mx-auto space-y-6">
+  <!-- 加寬 main 容器 -->
+  <main class="w-full max-w-[96%] mx-auto p-4 space-y-5 pb-20">
 
-    <!-- top controls -->
-    <div class="bg-white p-4 rounded-lg shadow-sm">
-      <div class="topbar">
-        <div style="min-width:180px;font-weight:600;">店別選單</div>
-        <div class="controls" style="flex:1;">
-          <select id="storeSelect" class="rounded-md border-gray-300 shadow-sm p-2" style="min-width:260px;"></select>
-          <label class="flex items-center gap-2">
-            <input id="storeLockCheckbox" type="checkbox" />
-            <span>店別鎖定</span>
-          </label>
-          <button id="refreshStoresBtn" class="btn bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">重新整理分店</button>
+    <!-- 1. 控制台 -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+        <div class="flex items-center gap-4 w-full sm:w-auto">
+          <!-- 店別選單 -->
+          <div class="relative flex-1 sm:flex-none sm:min-w-[180px]">
+            <select id="storeSelect" class="input-field appearance-none pr-8 font-medium text-gray-700">
+              <option value="">請選擇店別</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
+          
+          <!-- 鎖定 & 逾期通知開關 -->
+          <div class="flex items-center gap-4">
+            <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                <input id="storeLockCheckbox" type="checkbox" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500" />
+                <span class="text-sm font-medium text-gray-600">鎖定</span>
+            </label>
+            
+            <label class="flex items-center gap-2 cursor-pointer select-none group" title="開啟後，若訂單逾期5天未更新，將發送LINE通知">
+                <div class="relative">
+                  <input type="checkbox" id="notifyToggle" class="sr-only peer">
+                  <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                </div>
+                <span class="text-sm font-medium text-gray-600 group-hover:text-blue-600">逾期通知</span>
+            </label>
+          </div>
         </div>
-        <div class="hint">店別鎖定，選單為唯讀。</div>
+        
+        <!-- 備份與重整 -->
+        <div class="flex gap-2 w-full sm:w-auto">
+          <button id="backupBtn" class="w-1/2 sm:w-auto btn bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 px-3 py-2 text-sm">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+            備份資料
+          </button>
+          <button id="refreshStoresBtn" class="w-1/2 sm:w-auto btn bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 px-3 py-2 text-sm">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            重整分店
+          </button>
+        </div>
       </div>
-      <div id="top-message" class="mt-2 text-sm text-red-600 hidden"></div>
+      <div id="top-message" class="mt-2 text-sm font-medium hidden"></div>
     </div>
 
-    <!-- Form -->
-    <form id="orderForm">
-      <div class="lg:grid lg:grid-cols-12 lg:gap-8 items-stretch">
-        <!-- Customer -->
-        <div class="lg:col-span-6 mb-8 lg:mb-0">
-          <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg h-full flex flex-col">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">顧客資料</h2>
-
-            <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
-              <legend class="text-lg font-semibold px-2 text-gray-700">基本資料</legend>
-              <div class="mt-4 space-y-3">
-                <div class="flex items-center gap-3">
-                  <label for="customerID" class="no-wrap-label w-28 text-sm font-medium text-gray-700">客號</label>
-                  <input id="customerID" name="客號" type="text" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-                </div>
-                <div class="flex items-center gap-3">
-                  <label for="customerName" class="no-wrap-label w-28 text-sm font-medium text-gray-700">姓名</label>
-                  <input id="customerName" name="姓名" type="text" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-                </div>
-                <!-- 電話輸入框與警告訊息 -->
-                <div class="flex flex-col gap-1">
-                  <div class="flex items-center gap-3 relative">
-                    <label for="phone" class="no-wrap-label w-28 text-sm font-medium text-gray-700">連絡電話</label>
-                    <input id="phone" name="連絡電話" type="tel" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors" />
-                  </div>
-                  <!-- 警告文字容器 -->
-                  <div id="phone-warning" class="text-red-600 text-sm font-bold pl-28 ml-3 hidden"></div>
-                </div>
-                <div class="flex items-center gap-3">
-                  <label for="lineName" class="no-wrap-label w-28 text-sm font-medium text-gray-700">LINE名稱</label>
-                  <input id="lineName" name="LINE名稱" type="text" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-                </div>
-                <div class="flex items-center gap-6">
-                  <div class="flex items-center gap-3">
-                    <label class="no-wrap-label text-sm font-medium text-gray-700">付清</label>
-                    <input id="paid" name="paid" type="checkbox" value="是" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" />
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <label class="no-wrap-label text-sm font-medium text-gray-700">固定/長期客訂</label>
-                    <input id="longTerm" name="固定/長期客訂" type="checkbox" value="是" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" />
-                  </div>
-                </div>
-              </div>
-            </fieldset>
-
-            <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
-              <legend class="text-lg font-semibold px-2 text-gray-700">備註</legend>
-              <div class="mt-2">
-                <label class="no-wrap-label w-full text-sm font-medium text-gray-700">說明</label>
-                <textarea id="notes" name="備註" rows="4" class="w-full mt-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="在此輸入備註 ..."></textarea>
-              </div>
-            </fieldset>
-            <div class="mt-auto"></div>
-          </div>
+    <!-- 2. 新增訂單 -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <button id="formToggleBtn" class="accordion-toggle border-indigo-500 border-b border-gray-100">
+        <div class="accordion-title">
+          <span class="text-indigo-600 text-xl">📝</span>
+          <span>新增客訂單</span>
         </div>
+        <svg id="arrowIcon" class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+      </button>
 
-        <!-- Product -->
-        <div class="lg:col-span-6">
-          <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg h-full flex flex-col">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">商品資料</h2>
-
-            <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
-              <legend class="text-lg font-semibold px-2 text-gray-700">客訂商品 A (必填)</legend>
-              <div class="product-grid mt-3">
-                <div class="product-field">
-                  <label for="productAName" class="no-wrap-label text-sm font-medium text-gray-700">商品名稱</label>
-                  <input id="productAName" name="客訂商品A" type="text" required class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+      <div id="formContent" class="accordion-content">
+        <div class="accordion-inner">
+          <form id="orderForm" class="p-4 sm:p-6 space-y-6">
+            <!-- 顧客區塊 -->
+            <div>
+              <div class="section-title">顧客資料</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><label class="block text-xs font-medium text-gray-500 mb-1">客號</label><input name="客號" type="text" class="input-field" placeholder="輸入客號" /></div>
+                <div><label class="block text-xs font-medium text-gray-500 mb-1">姓名</label><input name="姓名" type="text" class="input-field" placeholder="顧客姓名" /></div>
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-medium text-gray-500 mb-1">電話</label>
+                  <input id="phone" name="連絡電話" type="tel" class="input-field" placeholder="09xx-xxx-xxx" />
+                  <div id="phone-warning" class="hidden mt-1 text-xs text-red-600 font-bold bg-red-50 p-2 rounded flex items-center gap-1"><span>⚠️ 此號碼在黑名單中！</span></div>
                 </div>
-                <div class="product-field">
-                  <label for="productASpec" class="no-wrap-label text-sm font-medium text-gray-700">規格 / 重量</label>
-                  <input id="productASpec" name="A商品規格" type="text" class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-                </div>
-                <div class="product-field">
-                  <label for="productAQty" class="no-wrap-label text-sm font-medium text-gray-700">數量</label>
-                  <input id="productAQty" name="A數量" type="number" min="1" required class="mt-1 w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                <div class="sm:col-span-2 bg-green-50/50 p-3 rounded-lg border border-green-100">
+                    <label class="block text-xs font-medium text-gray-500 mb-1">LINE 資訊</label>
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer select-none border-r border-green-200 pr-3">
+                           <input name="Line通知" type="checkbox" value="是" class="w-4 h-4 text-green-600 rounded focus:ring-green-500" />
+                           <span class="text-sm font-bold text-green-700">LINE通知</span>
+                        </label>
+                        <input name="LINE名稱" type="text" class="input-field flex-1 text-sm" placeholder="請輸入 LINE 名稱" />
+                    </div>
                 </div>
               </div>
-            </fieldset>
+              <div class="flex gap-4 mt-3">
+                 <label class="flex items-center gap-2 cursor-pointer"><input name="付清" type="checkbox" value="是" class="w-4 h-4 text-indigo-600 rounded" /><span class="text-sm text-gray-700">已付清</span></label>
+                 <label class="flex items-center gap-2 cursor-pointer"><input name="固定/長期客訂" type="checkbox" value="是" class="w-4 h-4 text-indigo-600 rounded" /><span class="text-sm text-gray-700">長期客訂</span></label>
+              </div>
+            </div>
 
-            <fieldset class="border border-gray-300 p-4 rounded-lg mb-4">
-              <legend class="text-lg font-semibold px-2 text-gray-700">客訂商品 B (選填)</legend>
-              <div class="product-grid mt-3">
-                <div class="product-field">
-                  <label for="productBName" class="no-wrap-label text-sm font-medium text-gray-700">商品名稱</label>
-                  <input id="productBName" name="客訂商品B" type="text" class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-                </div>
-                <div class="product-field">
-                  <label for="productBSpec" class="no-wrap-label text-sm font-medium text-gray-700">規格 / 重量</label>
-                  <input id="productBSpec" name="B商品規格" type="text" class="mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-                </div>
-                <div class="product-field">
-                  <label for="productBQty" class="no-wrap-label text-sm font-medium text-gray-700">數量</label>
-                  <input id="productBQty" name="B數量" type="number" min="1" class="mt-1 w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+            <!-- 商品區塊 A -->
+            <div class="bg-indigo-50/60 p-4 rounded-xl border border-indigo-100">
+              <div class="section-title text-indigo-600 !border-indigo-200">客訂商品 A (必填)</div>
+              <div class="space-y-3">
+                <input name="客訂商品A" type="text" required class="input-field border-indigo-200 focus:border-indigo-500" placeholder="商品名稱" />
+                <div class="flex gap-3">
+                  <input name="A商品規格" type="text" class="input-field flex-1 border-indigo-200" placeholder="規格/重量" />
+                  <input name="A數量" type="number" min="1" required class="input-field w-24 text-center border-indigo-200" placeholder="數量" />
                 </div>
               </div>
-            </fieldset>
+            </div>
 
-            <div class="mt-auto"></div>
+            <!-- 商品區塊 B -->
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+              <div class="section-title">客訂商品 B (選填)</div>
+              <div class="space-y-3">
+                <input name="客訂商品B" type="text" class="input-field bg-white" placeholder="商品名稱" />
+                <div class="flex gap-3">
+                  <input name="B商品規格" type="text" class="input-field flex-1 bg-white" placeholder="規格/重量" />
+                  <input name="B數量" type="number" min="1" class="input-field w-24 text-center bg-white" placeholder="數量" />
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2"><label class="block text-xs font-medium text-gray-500 mb-1">備註</label><textarea name="備註" rows="2" class="input-field" placeholder="其他備註事項..."></textarea></div>
+            <div class="pt-2">
+              <button type="submit" id="submitButton" class="w-full btn bg-indigo-600 hover:bg-indigo-700 text-white py-3 text-lg shadow-lg shadow-indigo-200">送出訂單</button>
+              <div id="message-box" class="hidden mt-3 p-3 rounded-lg text-center text-sm font-medium"></div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 訂單管理 -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      <div class="space-y-3 mb-4">
+        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2"><span>📋</span> 訂單管理</h2>
+        <div class="flex gap-2 flex-wrap sm:flex-nowrap">
+          <div class="relative flex-1 w-full">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></span>
+            <input id="searchInput" type="text" class="input-field pl-10" placeholder="搜尋姓名、電話、客號..." />
           </div>
+          <button id="searchButton" class="btn bg-gray-800 text-white px-4 hover:bg-gray-900 shrink-0">搜尋</button>
+          <!-- 查詢歷史客訂按鈕 -->
+          <button id="searchHistoryBtn" class="btn bg-blue-600 text-white px-4 hover:bg-blue-700 shrink-0 shadow-sm border border-blue-700">
+             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+             查詢歷史
+          </button>
+        </div>
+        <div class="flex justify-between items-center pt-1">
+           <div class="tab-scroll-container flex-1" id="statusTabs"></div>
+           <div class="flex gap-2 ml-2 shrink-0">
+             <button id="refreshButton" class="btn bg-white border border-gray-200 text-gray-600 p-2 rounded-full shadow-sm hover:bg-gray-50" title="重新整理">↺</button>
+             <button id="clearOverdueBtn" class="btn bg-white border border-orange-200 text-orange-600 px-3 py-1 text-xs hover:bg-orange-50">清除逾期</button>
+           </div>
         </div>
       </div>
 
-      <div class="flex justify-center mt-4">
-        <button type="submit" id="submitButton" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-10 rounded-lg shadow">送出訂單</button>
+      <div id="dataContainer" class="relative">
+        <div id="dataLoader" class="hidden absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm"><div class="loader"></div></div>
+        <div id="data-message-box" class="hidden p-3 mb-3 bg-blue-50 text-blue-700 rounded-lg text-sm text-center"></div>
+        <p id="noDataText" class="hidden text-center py-10 text-gray-400">沒有找到符合的訂單</p>
+        <div id="dataTableContainer" class="table-container hidden">
+          <table class="responsive-table">
+            <thead><tr id="data-table-headers"></tr></thead>
+            <tbody id="data-table-body"></tbody>
+          </table>
+        </div>
       </div>
-      <div id="message-box" class="hidden p-4 my-4 rounded-md max-w-3xl mx-auto"></div>
+    </div>
 
-    </form>
-
-    <!-- Data Query (bottom) -->
-    <div>
-      <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
-        <div class="flex items-center justify-between">
-          <h2 class="text-4xl font-bold text-gray-800 mb-2">客訂資料查詢</h2>
-          <div class="text-gray-600">搜尋、管理並執行操作（直接在表格內編輯或刪除）</div>
+    <!-- 4. 長期客訂 (Accordion) -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <button id="longTermToggleBtn" class="accordion-toggle border-blue-500 border-b border-gray-100">
+        <div class="accordion-title">
+          <span class="text-blue-600 text-xl">📅</span>
+          <span>長期客訂管理</span>
         </div>
+        <svg id="longTermArrowIcon" class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+      </button>
 
-        <div class="flex flex-col md:flex-row gap-4 mb-4">
-          <div class="flex-1">
-            <input id="searchInput" type="text" placeholder="搜尋客號、姓名、電話或商品名稱/規格..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-          </div>
-          <div class="flex gap-2">
-            <button id="searchButton" type="button" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">搜尋</button>
-            <button id="refreshButton" type="button" class="flex justify-center items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">重新整理</button>
-            <button id="clearOverdueBtn" type="button" class="flex justify-center items-center bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700">清除逾期已取</button>
+      <div id="longTermContent" class="accordion-content">
+        <div class="accordion-inner">
+          <div class="p-4">
+            <div class="flex gap-2 mb-3">
+              <div class="relative flex-1"><input id="longTerm_searchInput" type="text" class="input-field" placeholder="搜尋長期客訂..." /></div>
+              <button id="longTerm_searchButton" class="btn bg-blue-600 text-white px-4">搜尋</button>
+              <button id="longTerm_refreshButton" class="btn bg-white border border-gray-200 text-gray-600">↺</button>
+            </div>
+            <div id="longTerm_dataContainer" class="relative min-h-[100px]">
+              <div id="longTerm_dataLoader" class="hidden absolute inset-0 z-10 flex items-center justify-center bg-white/80"><div class="loader"></div></div>
+              <p id="longTerm_noDataText" class="hidden text-center py-4 text-gray-400">無長期訂單</p>
+              <div id="longTerm_dataTableContainer" class="table-container hidden">
+                <table class="responsive-table">
+                  <thead><tr id="longTerm_data-table-headers"></tr></thead>
+                  <tbody id="longTerm_data-table-body"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- 狀態書籤 -->
-        <div id="statusTabsContainer" class="mb-3">
-          <div class="status-tabs-scroll">
-            <div id="statusTabs" class="status-tabs"></div>
+    <!-- 5. 黑名單 (Accordion) -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <button id="blacklistToggleBtn" class="accordion-toggle border-red-500 border-b border-gray-100">
+        <div class="accordion-title">
+          <span class="text-red-600 text-xl">🚫</span>
+          <span>黑名單管理</span>
+        </div>
+        <svg id="blacklistArrowIcon" class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+      </button>
+
+      <div id="blacklistContent" class="accordion-content">
+        <div class="accordion-inner">
+          <div class="p-4">
+            <div class="flex gap-2 mb-3">
+              <div class="relative flex-1"><input id="blacklist_searchInput" type="text" class="input-field" placeholder="搜尋黑名單..." /></div>
+              <button id="blacklist_searchButton" class="btn bg-gray-600 text-white px-4">搜尋</button>
+              <button id="blacklist_addButton" class="btn bg-red-600 text-white px-4">新增</button>
+            </div>
+            <div id="blacklist_dataContainer" class="relative min-h-[100px]">
+              <div id="blacklist_dataLoader" class="hidden absolute inset-0 z-10 flex items-center justify-center bg-white/80"><div class="loader"></div></div>
+              <p id="blacklist_noDataText" class="hidden text-center py-4 text-gray-400">無黑名單資料</p>
+              <div id="blacklist_dataTableContainer" class="table-container hidden">
+                <table class="responsive-table">
+                  <thead id="blacklist_data-table-headers">
+                      <!-- 這裡直接寫死表頭，確保結構完整 -->
+                      <tr>
+                        <th class="sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap">狀態</th>
+                        <th class="sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap">操作</th>
+                        <th class="sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap">客號</th>
+                        <th class="sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap">姓名</th>
+                        <th class="sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap">電話</th>
+                        <th class="sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap">店別</th>
+                        <th class="sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap">原因</th>
+                        <th class="sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap">日期</th>
+                      </tr>
+                  </thead>
+                  <tbody id="blacklist_data-table-body"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div id="data-message-box" class="hidden p-4 mb-4 rounded-md"></div>
+  </main>
 
-        <div id="dataContainer">
-          <div id="dataLoader" class="loader hidden"></div>
-          <p id="noDataText" class="text-center text-gray-500 hidden">尚未有客訂資料。</p>
-          <div id="dataTableContainer" class="table-container hidden">
-            <table class="min-w-full">
-              <thead>
-                <tr id="data-table-headers"></tr>
-              </thead>
-              <tbody id="data-table-body"></tbody>
+  <div id="blacklist-alert-bar" class="fixed bottom-0 inset-x-0 bg-red-600 text-white p-3 text-center font-bold shadow-lg z-50 hidden transform transition-transform translate-y-full"></div>
+
+  <!-- History Search Modal (New) -->
+  <div id="historyModalBackdrop" class="modal-backdrop hidden fixed inset-0 z-[60]">
+    <div class="modal-card w-full max-w-4xl m-4 max-h-[90vh]">
+      <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-blue-50">
+        <h3 class="font-bold text-blue-800 text-lg">📜 歷史客訂資料 (唯讀)</h3>
+        <button id="closeHistoryModal" class="text-gray-400 hover:text-gray-600 p-1">&times;</button>
+      </div>
+      <div class="p-4 bg-white flex flex-col h-full">
+         <div class="flex gap-2 mb-3">
+            <input id="historySearchInput" type="text" class="input-field" placeholder="搜尋歷史訂單 (姓名、電話、商品...)" />
+            <button id="historySearchBtn" class="btn bg-blue-600 text-white px-4">搜尋</button>
+         </div>
+         <div id="historyDataContainer" class="flex-1 overflow-auto border border-gray-200 rounded-lg relative min-h-[300px]">
+            <div id="historyLoader" class="hidden absolute inset-0 z-10 flex items-center justify-center bg-white/80"><div class="loader"></div></div>
+            <p id="historyNoData" class="hidden text-center py-10 text-gray-400">請輸入關鍵字進行搜尋</p>
+            <table class="responsive-table">
+               <thead><tr id="history-table-headers"></tr></thead>
+               <tbody id="history-table-body"></tbody>
             </table>
-          </div>
-        </div>
+         </div>
       </div>
-    </div>
-
-    <!-- 固定/長期客訂資料查詢 -->
-    <div>
-      <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg">
-        <div class="flex items-center justify-between">
-          <h2 class="text-4xl font-bold text-blue-800 mb-2">固定/長期客訂資料查詢</h2>
-          <div class="text-gray-600">搜尋、管理並執行操作（直接在表格內編輯或刪除）</div>
-        </div>
-
-        <div class="flex flex-col md:flex-row gap-4 mb-4">
-          <input id="longTerm_searchInput" type="text" placeholder="搜尋客號、姓名、電話或商品名稱/規格..." class="block w-full md:flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-          <div class="flex gap-2">
-            <button id="longTerm_searchButton" type="button" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">搜尋</button>
-            <button id="longTerm_refreshButton" type="button" class="flex justify-center items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">重新整理</button>
-          </div>
-        </div>
-
-        <!-- 狀態書籤 -->
-        <div id="ltStatusTabsContainer" class="mb-3">
-          <div class="status-tabs-scroll">
-            <div id="ltStatusTabs" class="status-tabs"></div>
-          </div>
-        </div>
-
-        <div id="longTerm_data-message-box" class="hidden p-4 mb-4 rounded-md"></div>
-
-        <div id="longTerm_dataContainer">
-          <div id="longTerm_dataLoader" class="loader hidden"></div>
-          <p id="longTerm_noDataText" class="text-center text-gray-500 hidden">尚未有固定/長期客訂資料。</p>
-          <div id="longTerm_dataTableContainer" class="table-container hidden">
-            <table class="min-w-full">
-              <thead>
-                <tr id="longTerm_data-table-headers"></tr>
-              </thead>
-              <tbody id="longTerm_data-table-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 黑名單資料查詢 -->
-    <div>
-      <div class="bg-white p-6 md:p-8 rounded-lg shadow-lg border-2 border-red-200">
-        <div class="flex items-center justify-between">
-          <h2 class="text-4xl font-bold text-red-700 mb-2">黑名單資料查詢</h2>
-          <div class="text-gray-600">黑名單資料總覽（全分店共用）</div>
-        </div>
-
-        <div class="flex flex-col md:flex-row gap-4 mb-4">
-          <input id="blacklist_searchInput" type="text" placeholder="搜尋黑名單（電話、姓名、客號）..." class="block w-full md:flex-1 rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500" />
-          <div class="flex gap-2">
-            <button id="blacklist_addButton" type="button" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">新增黑名單</button>
-            <button id="blacklist_searchButton" type="button" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">搜尋</button>
-            <button id="blacklist_refreshButton" type="button" class="flex justify-center items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">重新整理</button>
-          </div>
-        </div>
-
-        <div id="blacklist_dataContainer">
-          <div id="blacklist_dataLoader" class="loader hidden"></div>
-          <p id="blacklist_noDataText" class="text-center text-gray-500 hidden">目前沒有黑名單資料。</p>
-          <div id="blacklist_dataTableContainer" class="table-container hidden">
-            <table class="min-w-full">
-              <thead>
-                <tr id="blacklist_data-table-headers"></tr>
-              </thead>
-              <tbody id="blacklist_data-table-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- 黑名單警示橫幅 -->
-  <div id="blacklist-alert-bar"></div>
-
-  <!-- Modals -->
-  <div id="editModalBackdrop" class="modal-backdrop hidden">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
-      <div class="flex items-center justify-between mb-4">
-        <h3 id="editModalTitle" class="text-xl font-semibold">編輯訂單</h3>
-        <button id="closeEditModal" class="btn" title="關閉">✕</button>
-      </div>
-      <form id="editForm" class="space-y-4">
-        <input type="hidden" id="editRowIndex" name="row" />
-        <input type="hidden" id="editLongTermHidden" /> 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label class="block text-sm font-medium text-gray-700">客號</label><input id="editCustomerID" name="客號" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">姓名</label><input id="editCustomerName" name="姓名" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">連絡電話</label><input id="editPhone" name="連絡電話" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">客訂商品 A</label><input id="editProductAName" name="客訂商品A" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">A 商品規格</label><input id="editProductASpec" name="A商品規格" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">A 数量</label><input id="editProductAQty" name="A數量" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">客訂商品 B</label><input id="editProductBName" name="客訂商品B" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">B 商品規格</label><input id="editProductBSpec" name="B商品規格" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">B 數量</label><input id="editProductBQty" name="B數量" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">採購日期</label><div class="flex items-center mt-1"><input id="editPurchaseDate" name="採購日期" type="date" class="flex-1 rounded-md border-gray-300" /><button type="button" class="btn date-action bg-blue-600 text-white flex-shrink-0" data-target="editPurchaseDate">標記今天</button></div></div>
-          <div><label class="block text-sm font-medium text-gray-700">到貨日期</label><div class="flex items-center mt-1"><input id="editArrivalDate" name="到貨日期" type="date" class="flex-1 rounded-md border-gray-300" /><button type="button" class="btn date-action bg-blue-600 text-white flex-shrink-0" data-target="editArrivalDate">標記今天</button></div></div>
-          <div><label class="block text-sm font-medium text-gray-700">取走日期</label><div class="flex items-center mt-1"><input id="editPickupDate" name="取走日期" type="date" class="flex-1 rounded-md border-gray-300" /><button type="button" class="btn date-action bg-blue-600 text-white flex-shrink-0" data-target="editPickupDate">標記今天</button></div></div>
-          <div><label class="block text-sm font-medium text-gray-700">分店調撥</label><input id="editStoreTransfer" name="分店調撥" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div class="md:col-span-2 flex items-center gap-3"><label class="no-wrap-label text-sm font-medium text-gray-700">付清</label><input id="editPaid" name="paid" type="checkbox" value="是" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">未接電話日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="editMissedInput" type="date" class="rounded-md border-gray-300" /><button id="editAddMissed" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="editStampMissed" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="editMissedTags" class="mt-2"></div><input type="hidden" id="editMissedHidden" name="未接電話日期" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">通知日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="editNotifyInput" type="date" class="rounded-md border-gray-300" /><button id="editAddNotify" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="editStampNotify" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="editNotifyTags" class="mt-2"></div><input type="hidden" id="editNotifyHidden" name="通知日期" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">備註</label><textarea id="editNotes" name="備註" rows="3" class="mt-1 w-full rounded-md border-gray-300"></textarea></div>
-        </div>
-        <div class="flex justify-end gap-3 pt-2">
-          <button type="button" id="cancelEdit" class="btn" style="background:#f3f4f6;border-radius:6px;">取消</button>
-          <button type="button" id="deleteEdit" class="btn border border-transparent whitespace-nowrap" style="background:#ef4444;color:white;border-radius:6px;">刪除</button>
-          <button type="submit" id="saveEdit" class="btn" style="background:#047857;color:white;border-radius:6px;">儲存變更</button>
-        </div>
-      </form>
     </div>
   </div>
 
-  <div id="longTerm_editModalBackdrop" class="modal-backdrop hidden">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="longTerm_editModalTitle">
-      <div class="flex items-center justify-between mb-4">
-        <h3 id="longTerm_editModalTitle" class="text-xl font-semibold">編輯固定/長期訂單</h3>
-        <button id="longTerm_closeEditModal" class="btn" title="關閉">✕</button>
+  <!-- Backup Modal -->
+  <div id="backupModalBackdrop" class="modal-backdrop hidden fixed inset-0 z-[70]">
+    <div class="modal-card w-full max-w-sm m-4">
+      <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-green-50">
+        <h3 class="font-bold text-green-800 text-lg">備份確認</h3>
+        <button id="closeBackupModal" class="text-gray-400 hover:text-gray-600">&times;</button>
       </div>
-      <form id="longTerm_editForm" class="space-y-4">
-        <input type="hidden" id="longTerm_editRowIndex" name="row" />
-        <input type="hidden" id="longTerm_editLongTermHidden" /> 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label class="block text-sm font-medium text-gray-700">客號</label><input id="longTerm_editCustomerID" name="客號" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">姓名</label><input id="longTerm_editCustomerName" name="姓名" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">連絡電話</label><input id="longTerm_editPhone" name="連絡電話" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">客訂商品 A</label><input id="longTerm_editProductAName" name="客訂商品A" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">A 商品規格</label><input id="longTerm_editProductASpec" name="A商品規格" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">A 数量</label><input id="longTerm_editProductAQty" name="A數量" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">客訂商品 B</label><input id="longTerm_editProductBName" name="客訂商品B" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">B 商品規格</label><input id="longTerm_editProductBSpec" name="B商品規格" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">B 數量</label><input id="longTerm_editProductBQty" name="B數量" type="number" min="0" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">分店調撥</label><input id="longTerm_editStoreTransfer" name="分店調撥" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div class="md:col-span-1 flex items-center gap-3"><label class="no-wrap-label text-sm font-medium text-gray-700">付清</label><input id="longTerm_editPaid" name="paid" type="checkbox" value="是" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">採購日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editPurchaseInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddPurchase" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampPurchase" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editPurchaseTags" class="mt-2"></div><input type="hidden" id="longTerm_editPurchaseHidden" name="採購日期" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">到貨日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editArrivalInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddArrival" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampArrival" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editArrivalTags" class="mt-2"></div><input type="hidden" id="longTerm_editArrivalHidden" name="到貨日期" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">取走日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editPickupInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddPickup" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampPickup" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editPickupTags" class="mt-2"></div><input type="hidden" id="longTerm_editPickupHidden" name="取走日期" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">通知日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editNotifyInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddNotify" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampNotify" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editNotifyTags" class="mt-2"></div><input type="hidden" id="longTerm_editNotifyHidden" name="通知日期" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">未接電話日期（可多筆）</label><div class="mt-1 flex gap-2"><input id="longTerm_editMissedInput" type="date" class="rounded-md border-gray-300" /><button id="longTerm_editAddMissed" type="button" class="btn bg-indigo-600 text-white">新增</button><button id="longTerm_editStampMissed" type="button" class="btn bg-blue-600 text-white">標記今天</button></div><div id="longTerm_editMissedTags" class="mt-2"></div><input type="hidden" id="longTerm_editMissedHidden" name="未接電話日期" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">備註</label><textarea id="longTerm_editNotes" name="備註" rows="3" class="mt-1 w-full rounded-md border-gray-300"></textarea></div>
+      <div class="p-6">
+        <div id="backupModalContent" class="text-gray-700 mb-6">
+           <!-- Dynamic Content -->
         </div>
-        <div class="flex justify-end gap-3 pt-2">
-          <button type="button" id="longTerm_cancelEdit" class="btn" style="background:#f3f4f6;border-radius:6px;">取消</button>
-          <button type="button" id="longTerm_deleteEdit" class="btn border border-transparent whitespace-nowrap" style="background:#ef4444;color:white;border-radius:6px;">刪除</button>
-          <button type="submit" id="longTerm_saveEdit" class="btn" style="background:#047857;color:white;border-radius:6px;">儲存變更</button>
+        <div class="flex justify-end gap-3">
+           <button id="cancelBackupBtn" class="btn bg-gray-100 text-gray-600 px-4 py-2 hover:bg-gray-200">取消</button>
+           <button id="confirmBackupBtn" class="btn bg-green-600 text-white px-4 py-2 shadow-md shadow-green-200 hover:bg-green-700">確認備份</button>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 
-  <div id="blacklist_addModalBackdrop" class="modal-backdrop hidden">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="blacklist_addModalTitle">
-      <div class="flex items-center justify-between mb-4">
-        <h3 id="blacklist_addModalTitle" class="text-xl font-semibold text-red-700">新增黑名單</h3>
-        <button id="blacklist_closeAddModal" class="btn" title="關閉">✕</button>
+  <!-- Edit Modal -->
+  <div id="editModalBackdrop" class="modal-backdrop hidden fixed inset-0 z-[60]">
+    <div class="modal-card w-full max-w-lg m-4 max-h-[90vh]">
+      <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+        <h3 class="font-bold text-gray-800 text-lg">編輯訂單</h3>
+        <button id="closeEditModal" class="text-gray-400 hover:text-gray-600 p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
       </div>
-      <form id="blacklist_addForm" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label class="block text-sm font-medium text-gray-700">客號 (選填)</label><input name="客號" class="mt-1 w-full rounded-md border-gray-300" placeholder="選填" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">姓名 (選填)</label><input name="姓名" class="mt-1 w-full rounded-md border-gray-300" placeholder="選填" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">電話 (選填)</label><input name="電話" class="mt-1 w-full rounded-md border-gray-300" placeholder="選填" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">店別 (選填，自動帶入)</label><input id="blacklist_addStore" name="店別" class="mt-1 w-full rounded-md border-gray-300" placeholder="選填" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">原因 (選填)</label><input name="原因" class="mt-1 w-full rounded-md border-gray-300" placeholder="選填" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">日期 (選填)</label><div class="flex items-center mt-1 gap-2"><input id="blacklist_addDateInput" name="日期" type="date" class="flex-1 rounded-md border-gray-300" /><button type="button" class="btn date-action bg-blue-600 text-white flex-shrink-0" data-target="blacklist_addDateInput">標記今天</button></div></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">備註 (選填)</label><textarea name="備註" rows="3" class="mt-1 w-full rounded-md border-gray-300" placeholder="選填"></textarea></div>
-        </div>
-        <div class="flex justify-end gap-3 pt-2">
-          <button type="button" id="blacklist_cancelAdd" class="btn" style="background:#f3f4f6;border-radius:6px;">取消</button>
-          <button type="submit" class="btn" style="background:#dc2626;color:white;border-radius:6px;">新增黑名單</button>
-        </div>
-      </form>
+      <div class="overflow-y-auto p-4 sm:p-6 bg-white">
+        <form id="editForm" class="space-y-5">
+          <input type="hidden" id="editRowIndex" name="row" />
+          <div class="grid grid-cols-2 gap-3">
+             <div class="col-span-1"><label class="text-xs text-gray-500">客號</label><input id="editCustomerID" name="客號" class="input-field mt-1" /></div>
+             <div class="col-span-1"><label class="text-xs text-gray-500">姓名</label><input id="editCustomerName" name="姓名" class="input-field mt-1" /></div>
+             <div class="col-span-2"><label class="text-xs text-gray-500">電話</label><input id="editPhone" name="連絡電話" class="input-field mt-1" /></div>
+             
+             <div class="col-span-2 bg-green-50 p-3 rounded-lg border border-green-100 flex items-center gap-3">
+                <label class="flex items-center gap-2 cursor-pointer select-none border-r border-green-200 pr-3">
+                   <input id="editLineNotify" name="Line通知" type="checkbox" value="是" class="w-4 h-4 text-green-600 rounded focus:ring-green-500" />
+                   <span class="text-sm font-bold text-green-700">LINE通知</span>
+                </label>
+                <input id="editLineName" name="LINE名稱" type="text" class="input-field flex-1 text-sm h-8" placeholder="LINE 名稱" />
+             </div>
+             
+             <div class="col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+               <div class="flex gap-2 mb-2"><input id="editProductAName" name="客訂商品A" class="input-field flex-[3]" placeholder="商品 A" /><input id="editProductAQty" name="A數量" type="number" class="input-field flex-[1] text-center" placeholder="數" /></div>
+               <input id="editProductASpec" name="A商品規格" class="input-field text-sm" placeholder="規格 A" />
+             </div>
+             <div class="col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+               <div class="flex gap-2 mb-2"><input id="editProductBName" name="客訂商品B" class="input-field flex-[3]" placeholder="商品 B" /><input id="editProductBQty" name="B數量" type="number" class="input-field flex-[1] text-center" placeholder="數" /></div>
+               <input id="editProductBSpec" name="B商品規格" class="input-field text-sm" placeholder="規格 B" />
+             </div>
+
+             <div class="col-span-2 space-y-2 pt-2">
+               <div class="flex items-center gap-2"><span class="text-xs text-gray-500 w-14">採購</span><input id="editPurchaseDate" name="採購日期" type="date" class="input-field flex-1 py-1 text-sm" /><button type="button" class="btn bg-blue-100 text-blue-700 text-xs px-2 py-1" data-target="editPurchaseDate">今</button></div>
+               
+               <div class="flex items-center gap-2"><span class="text-xs text-gray-500 w-14">到貨</span><input id="editArrivalDate" name="到貨日期" type="date" class="input-field flex-1 py-1 text-sm" /><button type="button" class="btn bg-blue-100 text-blue-700 text-xs px-2 py-1" data-target="editArrivalDate">今</button></div>
+               
+               <div class="bg-red-50 p-2 rounded border border-red-100">
+                   <div class="flex items-center gap-2 mb-1">
+                       <span class="text-xs font-bold text-red-500 w-14">未接</span>
+                       <input id="editMissedInput" type="date" class="input-field flex-1 py-1 text-sm" />
+                       <button type="button" id="editAddMissed" class="btn bg-white border border-gray-200 text-gray-600 text-xs px-2 py-1">+</button>
+                       <button type="button" id="editStampMissed" class="btn bg-red-100 text-red-600 text-xs px-2 py-1">今</button>
+                   </div>
+                   <div id="editMissedTags" class="flex flex-wrap gap-1"></div>
+               </div>
+
+               <div class="bg-blue-50 p-2 rounded border border-blue-100">
+                   <div class="flex items-center gap-2 mb-1">
+                       <span class="text-xs font-bold text-blue-500 w-14">通知</span>
+                       <input id="editNotifyInput" type="date" class="input-field flex-1 py-1 text-sm" />
+                       <button type="button" id="editAddNotify" class="btn bg-white border border-gray-200 text-gray-600 text-xs px-2 py-1">+</button>
+                       <button type="button" id="editStampNotify" class="btn bg-blue-100 text-blue-600 text-xs px-2 py-1">今</button>
+                   </div>
+                   <div id="editNotifyTags" class="flex flex-wrap gap-1"></div>
+               </div>
+
+               <div class="flex items-center gap-2"><span class="text-xs text-gray-500 w-14">取走</span><input id="editPickupDate" name="取走日期" type="date" class="input-field flex-1 py-1 text-sm" /><button type="button" class="btn bg-blue-100 text-blue-700 text-xs px-2 py-1" data-target="editPickupDate">今</button></div>
+             </div>
+
+             <div class="col-span-2 py-2"><label class="flex items-center gap-2 select-none"><input id="editPaid" name="付清" type="checkbox" value="是" class="w-4 h-4 text-indigo-600 rounded" /><span class="text-sm font-medium">已付清</span></label></div>
+             <div class="col-span-2"><label class="text-xs text-gray-500">備註</label><textarea id="editNotes" name="備註" rows="2" class="input-field mt-1"></textarea></div>
+             <input type="hidden" id="editStoreTransfer" name="分店調撥" /><input type="hidden" id="editMissedHidden" name="未接電話日期" /><input type="hidden" id="editNotifyHidden" name="通知日期" />
+          </div>
+          <div class="pt-4 border-t border-gray-100 flex gap-3">
+             <button type="button" id="deleteEdit" class="btn flex-1 bg-red-50 text-red-600 py-2.5 hover:bg-red-100">刪除</button>
+             <button type="submit" id="saveEdit" class="btn flex-[2] bg-indigo-600 text-white py-2.5 shadow-md shadow-indigo-200 hover:bg-indigo-700">儲存變更</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
-  <!-- 黑名單編輯 Modal (新增) -->
-  <div id="blacklist_editModalBackdrop" class="modal-backdrop hidden">
-    <div class="modal" role="dialog">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-xl font-semibold text-red-700">編輯黑名單</h3>
-        <button id="blacklist_closeEditModal" class="btn">✕</button>
+  <!-- Long Term Edit Modal -->
+  <div id="longTerm_editModalBackdrop" class="modal-backdrop hidden fixed inset-0 z-[60]">
+    <div class="modal-card w-full max-w-lg m-4 max-h-[90vh]">
+      <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-blue-50">
+        <h3 class="font-bold text-blue-800 text-lg">長期客訂編輯</h3>
+        <button id="longTerm_closeEditModal" class="text-gray-400 hover:text-gray-600">&times;</button>
       </div>
-      <form id="blacklist_editForm" class="space-y-4">
-        <input type="hidden" id="blacklist_editRowIndex" name="row" />
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label class="block text-sm font-medium text-gray-700">客號</label><input id="bl_edit_custID" name="客號" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">姓名</label><input id="bl_edit_name" name="姓名" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">電話</label><input id="bl_edit_phone" name="電話" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">店別</label><input id="bl_edit_store" name="店別" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">原因</label><input id="bl_edit_reason" name="原因" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div><label class="block text-sm font-medium text-gray-700">日期</label><input id="bl_edit_date" name="日期" type="date" class="mt-1 w-full rounded-md border-gray-300" /></div>
-          <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">備註</label><textarea id="bl_edit_notes" name="備註" rows="3" class="mt-1 w-full rounded-md border-gray-300"></textarea></div>
-        </div>
-        <div class="flex justify-end gap-3 pt-2">
-          <button type="button" id="blacklist_cancelEdit" class="btn" style="background:#f3f4f6;border-radius:6px;">取消</button>
-          <button type="submit" class="btn" style="background:#047857;color:white;border-radius:6px;">儲存變更</button>
-        </div>
-      </form>
+      <div class="overflow-y-auto p-4">
+        <form id="longTerm_editForm" class="space-y-4">
+          <input type="hidden" id="longTerm_editRowIndex" name="row" />
+          <div class="grid grid-cols-2 gap-3">
+             <input id="longTerm_editCustomerID" name="客號" class="input-field" placeholder="客號" />
+             <input id="longTerm_editCustomerName" name="姓名" class="input-field" placeholder="姓名" />
+             <input id="longTerm_editPhone" name="連絡電話" class="input-field col-span-2" placeholder="電話" />
+             
+             <div class="col-span-2 bg-gray-50 p-2 rounded border">
+                <input id="longTerm_editProductAName" name="客訂商品A" class="input-field mb-2" placeholder="商品A" />
+                <div class="flex gap-2"><input id="longTerm_editProductASpec" name="A商品規格" class="input-field flex-1" placeholder="規格" /><input id="longTerm_editProductAQty" name="A數量" class="input-field w-20 text-center" placeholder="數" /></div>
+             </div>
+             
+             <div class="col-span-2 space-y-2 pt-2">
+               <div class="bg-gray-50 p-2 rounded border">
+                 <div class="flex items-center gap-2 mb-1"><span class="text-xs font-bold text-blue-600 w-14">採購</span><input id="longTerm_editPurchaseInput" type="date" class="input-field flex-1 py-1 text-sm"/><button type="button" id="longTerm_editAddPurchase" class="btn bg-white border text-xs px-2">+</button><button type="button" id="longTerm_editStampPurchase" class="btn bg-blue-100 text-blue-600 text-xs px-2">今</button></div>
+                 <div id="longTerm_editPurchaseTags" class="flex flex-wrap gap-1"></div>
+               </div>
+               <div class="bg-gray-50 p-2 rounded border">
+                 <div class="flex items-center gap-2 mb-1"><span class="text-xs font-bold text-purple-600 w-14">到貨</span><input id="longTerm_editArrivalInput" type="date" class="input-field flex-1 py-1 text-sm"/><button type="button" id="longTerm_editAddArrival" class="btn bg-white border text-xs px-2">+</button><button type="button" id="longTerm_editStampArrival" class="btn bg-purple-100 text-purple-600 text-xs px-2">今</button></div>
+                 <div id="longTerm_editArrivalTags" class="flex flex-wrap gap-1"></div>
+               </div>
+               <div class="bg-red-50 p-2 rounded border border-red-100">
+                 <div class="flex items-center gap-2 mb-1"><span class="text-xs font-bold text-red-500 w-14">未接</span><input id="longTerm_editMissedInput" type="date" class="input-field flex-1 py-1 text-sm"/><button type="button" id="longTerm_editAddMissed" class="btn bg-white border text-xs px-2">+</button><button type="button" id="longTerm_editStampMissed" class="btn bg-red-100 text-red-600 text-xs px-2">今</button></div>
+                 <div id="longTerm_editMissedTags" class="flex flex-wrap gap-1"></div>
+               </div>
+               <div class="bg-blue-50 p-2 rounded border border-blue-100">
+                 <div class="flex items-center gap-2 mb-1"><span class="text-xs font-bold text-blue-500 w-14">通知</span><input id="longTerm_editNotifyInput" type="date" class="input-field flex-1 py-1 text-sm"/><button type="button" id="longTerm_editAddNotify" class="btn bg-white border text-xs px-2">+</button><button type="button" id="longTerm_editStampNotify" class="btn bg-blue-100 text-blue-600 text-xs px-2">今</button></div>
+                 <div id="longTerm_editNotifyTags" class="flex flex-wrap gap-1"></div>
+               </div>
+               <div class="bg-gray-50 p-2 rounded border">
+                 <div class="flex items-center gap-2 mb-1"><span class="text-xs font-bold text-green-600 w-14">取走</span><input id="longTerm_editPickupInput" type="date" class="input-field flex-1 py-1 text-sm"/><button type="button" id="longTerm_editAddPickup" class="btn bg-white border text-xs px-2">+</button><button type="button" id="longTerm_editStampPickup" class="btn bg-green-100 text-green-600 text-xs px-2">今</button></div>
+                 <div id="longTerm_editPickupTags" class="flex flex-wrap gap-1"></div>
+               </div>
+             </div>
+
+             <div class="col-span-2"><textarea id="longTerm_editNotes" name="備註" class="input-field" placeholder="備註"></textarea></div>
+          </div>
+          <div class="flex gap-3 pt-3">
+            <button type="button" id="longTerm_deleteEdit" class="btn bg-red-50 text-red-600 flex-1 py-2">刪除</button>
+            <button type="submit" id="longTerm_saveEdit" class="btn bg-blue-600 text-white flex-[2] py-2">儲存</button>
+          </div>
+          <input type="hidden" id="longTerm_editProductBName" name="客訂商品B" /><input type="hidden" id="longTerm_editProductBSpec" name="B商品規格" /><input type="hidden" id="longTerm_editProductBQty" name="B數量" /><input type="checkbox" id="longTerm_editPaid" name="付清" class="hidden" /><input type="hidden" id="longTerm_editPurchaseHidden" name="採購日期" /><input type="hidden" id="longTerm_editArrivalHidden" name="到貨日期" /><input type="hidden" id="longTerm_editPickupHidden" name="取走日期" /><input type="hidden" id="longTerm_editMissedHidden" name="未接電話日期" /><input type="hidden" id="longTerm_editNotifyHidden" name="通知日期" /><input type="hidden" id="longTerm_editStoreTransfer" name="分店調撥" />
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blacklist Add Modal -->
+  <div id="blacklist_addModalBackdrop" class="modal-backdrop hidden fixed inset-0 z-[60]">
+    <div class="modal-card w-full max-w-sm m-4">
+      <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-red-50">
+        <h3 class="font-bold text-red-800 text-lg">新增黑名單</h3>
+        <button id="blacklist_closeAddModal" class="text-gray-400 hover:text-gray-600">&times;</button>
+      </div>
+      <div class="p-4">
+        <form id="blacklist_addForm" class="space-y-3">
+           <input name="電話" class="input-field" placeholder="電話 (選填)" />
+           <input name="姓名" class="input-field" placeholder="姓名 (選填)" />
+           <input name="客號" class="input-field" placeholder="客號 (選填)" />
+           <input name="原因" class="input-field" placeholder="原因" required />
+           <input type="hidden" id="blacklist_addStore" name="店別" />
+           <div class="flex justify-end gap-2 pt-2">
+             <button type="button" id="blacklist_cancelAdd" class="btn bg-gray-100 px-4 py-2">取消</button>
+             <button type="submit" class="btn bg-red-600 text-white px-4 py-2">新增</button>
+           </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blacklist Edit Modal -->
+  <div id="blacklist_editModalBackdrop" class="modal-backdrop hidden fixed inset-0 z-[60]">
+    <div class="modal-card w-full max-w-sm m-4">
+      <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-red-50">
+        <h3 class="font-bold text-red-800 text-lg">編輯黑名單</h3>
+        <button id="blacklist_closeEditModal" class="text-gray-400 hover:text-gray-600">&times;</button>
+      </div>
+      <div class="p-4">
+        <form id="blacklist_editForm" class="space-y-3">
+           <input type="hidden" id="blacklist_editRowIndex" name="row" />
+           <input id="bl_edit_phone" name="電話" class="input-field" placeholder="電話" />
+           <input id="bl_edit_name" name="姓名" class="input-field" placeholder="姓名" />
+           <input id="bl_edit_custID" name="客號" class="input-field" placeholder="客號" />
+           <input id="bl_edit_reason" name="原因" class="input-field" placeholder="原因" />
+           <input id="bl_edit_date" name="日期" type="date" class="input-field" />
+           <textarea id="bl_edit_notes" name="備註" class="input-field" placeholder="備註"></textarea>
+           <input type="hidden" id="bl_edit_store" name="店別" />
+           <div class="flex justify-end gap-2 pt-2">
+             <button type="button" id="blacklist_cancelEdit" class="btn bg-gray-100 px-4 py-2">取消</button>
+             <button type="submit" class="btn bg-green-600 text-white px-4 py-2">儲存</button>
+           </div>
+        </form>
+      </div>
     </div>
   </div>
 
   <script>
-    // CONSTANTS & DOM Refs
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyfDwaVTkHD-HGtY-6MzxscARnxwML9j1Ejn4v5cvPCAlgIPNRNkuU07r_61OBEVAYK/exec";
     
-    const storeSelect = document.getElementById('storeSelect');
-    const storeLockCheckbox = document.getElementById('storeLockCheckbox');
-    const refreshStoresBtn = document.getElementById('refreshStoresBtn');
-    const topMessage = document.getElementById('top-message');
-    const messageBox = document.getElementById('message-box');
-    const form = document.getElementById('orderForm');
-    const submitButton = document.getElementById('submitButton');
-
-    const searchInput = document.getElementById('searchInput');
-    const searchButton = document.getElementById('searchButton');
-    const refreshButton = document.getElementById('refreshButton');
-    const clearOverdueBtn = document.getElementById('clearOverdueBtn'); // 新增
-    const dataMessageBox = document.getElementById('data-message-box');
-    const dataLoader = document.getElementById('dataLoader');
-    const noDataText = document.getElementById('noDataText');
-    const dataTableContainer = document.getElementById('dataTableContainer');
-    const dataTableHeaders = document.getElementById('data-table-headers');
-    const dataTableBody = document.getElementById('data-table-body');
-
-    const longTerm_searchInput = document.getElementById('longTerm_searchInput');
-    const longTerm_searchButton = document.getElementById('longTerm_searchButton');
-    const longTerm_refreshButton = document.getElementById('longTerm_refreshButton');
-    const longTerm_dataMessageBox = document.getElementById('longTerm_data-message-box');
-    const longTerm_dataLoader = document.getElementById('longTerm_dataLoader');
-    const longTerm_noDataText = document.getElementById('longTerm_noDataText');
-    const longTerm_dataTableContainer = document.getElementById('longTerm_dataTableContainer');
-    const longTerm_dataTableHeaders = document.getElementById('longTerm_data-table-headers');
-    const longTerm_dataTableBody = document.getElementById('longTerm_data-table-body');
-
-    const blacklistAlertBar = document.getElementById('blacklist-alert-bar');
-    const blacklistSearchInput = document.getElementById('blacklist_searchInput');
-    const blacklistSearchButton = document.getElementById('blacklist_searchButton');
-    const blacklistRefreshButton = document.getElementById('blacklist_refreshButton');
-    const blacklistDataLoader = document.getElementById('blacklist_dataLoader');
-    const blacklistNoDataText = document.getElementById('blacklist_noDataText');
-    const blacklistDataTableContainer = document.getElementById('blacklist_dataTableContainer');
-    const blacklistDataTableHeaders = document.getElementById('blacklist_data-table-headers');
-    const blacklistDataTableBody = document.getElementById('blacklist_data-table-body');
-    const blacklistAddButton = document.getElementById('blacklist_addButton');
-    const blacklistAddModalBackdrop = document.getElementById('blacklist_addModalBackdrop');
-    const blacklistCloseAddModal = document.getElementById('blacklist_closeAddModal');
-    const blacklistCancelAdd = document.getElementById('blacklist_cancelAdd');
-    const blacklistAddForm = document.getElementById('blacklist_addForm');
-    const blacklistAddStoreInput = document.getElementById('blacklist_addStore');
-    const blacklistAddDateInput = document.getElementById('blacklist_addDateInput');
-
-    const statusTabsEl = document.getElementById('statusTabs');
-    const ltStatusTabsEl = document.getElementById('ltStatusTabs');
-
-    const editModalBackdrop = document.getElementById('editModalBackdrop');
-    const closeEditModal = document.getElementById('closeEditModal');
-    const cancelEdit = document.getElementById('cancelEdit');
-    const editForm = document.getElementById('editForm');
-    const deleteEditBtn = document.getElementById('deleteEdit');
-    const longTerm_editModalBackdrop = document.getElementById('longTerm_editModalBackdrop');
-    const longTerm_closeEditModal = document.getElementById('longTerm_closeEditModal');
-    const longTerm_cancelEdit = document.getElementById('longTerm_cancelEdit');
-    const longTerm_deleteEditBtn = document.getElementById('longTerm_deleteEdit');
-    const longTerm_editForm = document.getElementById('longTerm_editForm');
-
-    // Tag elements
-    const editAddMissed = document.getElementById('editAddMissed');
-    const editStampMissed = document.getElementById('editStampMissed');
-    const editMissedInput = document.getElementById('editMissedInput');
-    const editMissedTags = document.getElementById('editMissedTags');
-    const editMissedHidden = document.getElementById('editMissedHidden');
-
-    const editAddNotify = document.getElementById('editAddNotify');
-    const editStampNotify = document.getElementById('editStampNotify');
-    const editNotifyInput = document.getElementById('editNotifyInput');
-    const editNotifyTags = document.getElementById('editNotifyTags');
-    const editNotifyHidden = document.getElementById('editNotifyHidden');
-
+    // Declare Element Collections (Defined BEFORE setupTagControls is called)
     const longTerm_editPurchaseCtrl_el = {
       addBtn: document.getElementById('longTerm_editAddPurchase'),
       stampBtn: document.getElementById('longTerm_editStampPurchase'),
@@ -618,765 +753,7 @@
       hiddenInput: document.getElementById('longTerm_editNotifyHidden')
     };
 
-    // --- Global Helper Functions (Defined at the top level) ---
-    function closeModal(){ editModalBackdrop.classList.add('hidden'); }
-    function longTerm_closeModal(){ longTerm_editModalBackdrop.classList.add('hidden'); }
-    function closeBlacklistAddModal() { blacklistAddModalBackdrop.classList.add('hidden'); }
-    function openBlacklistAddModal() {
-      const storeText = storeSelect.options[storeSelect.selectedIndex]?.text || '';
-      const parts = storeText.split('—');
-      const storeName = parts.length > 1 ? parts[1].trim() : storeText.trim();
-      blacklistAddStoreInput.value = storeName.replace(/^--.*--$/, ''); 
-      blacklistAddModalBackdrop.classList.remove('hidden');
-    }
-
-    function pad(n){ return String(n).padStart(2,'0'); }
-    function todayLocalForInput() { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
-    function todayLocalForSheet() { const d=new Date(); return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`; }
-    function digitsOnly(s){ return String(s||'').replace(/\D/g,''); }
-    function cleanPhone(p) { return String(p || '').replace(/\D/g, ''); }
-
-    function showTopMessage(txt, isError=false){
-      if(!txt){ topMessage.classList.add('hidden'); topMessage.textContent=''; return; }
-      topMessage.textContent = txt;
-      topMessage.classList.remove('hidden');
-      topMessage.style.color = isError ? '#b91c1c' : '#065f46';
-    }
-
-    function showMessage(type, html){
-      if(!messageBox){ console.error(html); return; }
-      messageBox.innerHTML = html;
-      messageBox.className = 'p-4 my-4 rounded-md max-w-3xl mx-auto';
-      if(type === 'success') messageBox.classList.add('bg-green-100','text-green-800');
-      else messageBox.classList.add('bg-red-100','text-red-800');
-      messageBox.classList.remove('hidden');
-      messageBox.scrollIntoView({behavior:'smooth', block:'start'});
-    }
-    function hideMessage(){ if(messageBox) messageBox.classList.add('hidden'); }
-
-    function showDataMessage(type, html, isLongTerm=false){
-      const box = isLongTerm ? longTerm_dataMessageBox : dataMessageBox;
-      if(!box) return;
-      box.innerHTML = html;
-      box.className = 'p-4 mb-4 rounded-md';
-      if(type === 'error') box.classList.add('bg-red-100','text-red-800');
-      else if(type === 'info') box.classList.add('info-box');
-      else box.classList.add('bg-gray-100','text-gray-800');
-      box.classList.remove('hidden');
-    }
-    function hideDataMessage(isLongTerm=false){
-      const box = isLongTerm ? longTerm_dataMessageBox : dataMessageBox;
-      if(box) box.classList.add('hidden');
-    }
-
-    function showBlacklistAlert(msg) {
-      blacklistAlertBar.textContent = msg;
-      blacklistAlertBar.style.display = 'block';
-    }
-    function hideBlacklistAlert() { blacklistAlertBar.style.display = 'none'; }
-
-
-    // --- Data Variables ---
-    let allOrders = [];
-    let allLongTermOrders = [];
-    let allBlacklistData = [];
-    let tableHeadersOriginal = []; 
-    let longTerm_tableHeadersOriginal = [];
-    
-    let currentStatusFilter = 'all';
-    let currentLTStatusFilter = 'all';
-    
-    let headerNameMap = {
-      '客訂商品A':'客訂商品 A','A商品規格':'規格 A',
-      '客訂商品B':'客訂商品 B','B商品規格':'規格 B',
-      'A數量':'数量 A', 'B數量':'数量 B',
-      '固定/長期客訂': '長期',
-      'paid': '付清'
-    };
-
-    // --- Logic Functions ---
-    
-    function getOrderStatus(order){
-      const purchaseDate = order['採購日期'];
-      const arrivalDate = order['到貨日期'];
-      const missedCallDates = order['未接電話日期'];
-      const notifyDates = order['通知日期'];
-      const pickupDate = order['取走日期'];
-      if (pickupDate && String(pickupDate).trim()) return { text:'已取貨', class:'status-closed' };
-      if (notifyDates && String(notifyDates).trim()) return { text:'已通知等取貨', class:'status-notified' };
-      if (missedCallDates && String(missedCallDates).trim()) return { text:'已到貨未接電話', class:'status-missed' };
-      if (arrivalDate && String(arrivalDate).trim()) return { text:'已到貨還未聯絡', class:'status-arrived' };
-      if (purchaseDate && String(purchaseDate).trim()) return { text:'已採購等到貨', class:'status-purchase' };
-      return { text:'尚未處理', class:'status-pending' };
-    }
-    
-    function pawSVG(){ return `<svg class="status-paw" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M19.5 10.5c0 1.38-1.12 2.5-2.5 2.5s-2.5-1.12-2.5-2.5S15.62 8 17 8s2.5 1.12 2.5 2.5zM11.5 6c0 1.38-1.12 2.5-2.5 2.5S6.5 7.38 6.5 6 7.62 3.5 9 3.5 11.5 4.62 11.5 6zM6 13.5c0 1.38-1.12 2.5-2.5 2.5S1 14.88 1 13.5 2.12 11 3.5 11 6 12.12 6 13.5zM21 13.5c0 1.38-1.12 2.5-2.5 2.5S16 14.88 16 13.5 17.12 11 18.5 11 21 12.12 21 13.5zM12 12c-2 0-4 2-4 4 0 2 1.79 4 4 4s4-2 4-4c0-2-2-4-4-4z"/></svg>`; }
-
-    function formatPhone(rawVal){
-      if(rawVal===undefined || rawVal===null) return '';
-      const s = String(rawVal).trim();
-      if(s.startsWith('0')) return s;
-      if(/^\d{9}$/.test(s)) return '0'+s;
-      return s;
-    }
-
-    function isChecked(value) {
-        if (typeof value === 'boolean') return value;
-        if (typeof value === 'string') {
-            const s = value.toLowerCase().trim();
-            return s === '是' || s === 'true' || s === '1' || s === 'yes';
-        }
-        return false;
-    }
-
-    function formatFieldValueIfDate(fieldName, rawValue){
-      if(!rawValue && rawValue !== 0) return '';
-      const DATE_FIELDS = ['採購日期','到貨日期','取走日期','未接電話日期','通知日期','建立日期','creationDate','最後更新時間'];
-      if(DATE_FIELDS.includes(fieldName)){
-        const parts = String(rawValue).split(/[,;，\n]+/).map(s=>s.trim()).filter(Boolean).map(formatToYYYYMMDD);
-        return parts.join(', ');
-      }
-      if(String(rawValue).includes('T') || /\d{4}-\d{2}-\d{2}/.test(String(rawValue))) return formatToYYYYMMDD(rawValue);
-      return String(rawValue);
-    }
-
-    function formatToYYYYMMDD(singleVal){
-      if(!singleVal && singleVal !== 0) return '';
-      const s = String(singleVal).trim();
-      const m1 = s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);
-      if(m1) return `${m1[1]}/${m1[2]}/${m1[3]}`;
-      const isoLike = s.match(/\d{4}-\d{2}-\d{2}/);
-      if(isoLike){
-        const parsed = new Date(s);
-        if(!isNaN(parsed)){ return `${parsed.getFullYear()}/${pad(parsed.getMonth()+1)}/${pad(parsed.getDate())}`; }
-        else return isoLike[0].replace(/-/g,'/');
-      }
-      const fallback = s.match(/(\d{4}).*?(\d{1,2}).*?(\d{1,2})/);
-      if(fallback) return `${fallback[1]}/${pad(fallback[2])}/${pad(fallback[3])}`;
-      return s;
-    }
-
-    function toDateOnly(val) {
-      if (!val && val !== 0) return '';
-      const s = String(val).trim();
-      const m1 = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-      if (m1) {
-        return `${m1[1]}-${String(m1[2]).padStart(2,'0')}-${String(m1[3]).padStart(2,'0')}`;
-      }
-      const m2 = s.match(/^(\d{4}-\d{2}-\d{2})/);
-      if (m2) return m2[1];
-      const parsed = new Date(s);
-      if (!isNaN(parsed)) {
-        return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`;
-      }
-      return '';
-    }
-    function parseMultiDateStringToArray(dateString) {
-        if (!dateString || typeof dateString !== 'string') return [];
-        return dateString.split(/[,;，\s]+/)
-                         .map(s => toDateOnly(s))
-                         .filter(Boolean);
-    }
-
-    function getOrderTimestamp(order){
-      if(order && order.creationDate){
-        const t = Date.parse(order.creationDate);
-        if(!isNaN(t)) return t;
-      }
-      const val = order && (order['最後更新時間'] || order['creationDate'] || order['建立日期'] || '');
-      if(val){
-        const iso = String(val).match(/\d{4}[-\/]\d{2}[-\/]\d{2}/);
-        if(iso){
-          const d = new Date(iso[0].replace(/-/g,'/'));
-          if(!isNaN(d)) return d.getTime();
-        }
-        const d2 = new Date(String(val));
-        if(!isNaN(d2)) return d2.getTime();
-      }
-      return 0;
-    }
-
-    // --- Render Functions ---
-    function renderTableHeaders(displayHeaders){
-      dataTableHeaders.innerHTML = '';
-      const headers = ['狀態','編輯','刪除', ...displayHeaders];
-      headers.forEach(h=>{
-        const th = document.createElement('th');
-        th.className = 'sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap'; 
-        th.textContent = h;
-        dataTableHeaders.appendChild(th);
-      });
-    }
-
-    function renderLongTermTableHeaders(displayHeaders){
-      longTerm_dataTableHeaders.innerHTML = '';
-      const headers = ['狀態','編輯','刪除', ...displayHeaders];
-      headers.forEach(h=>{
-        const th = document.createElement('th');
-        th.className = 'sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap';
-        th.textContent = h;
-        longTerm_dataTableHeaders.appendChild(th);
-      });
-    }
-
-    function renderBlacklistTable(data, headers) {
-      blacklistDataTableHeaders.innerHTML = '';
-      blacklistDataTableBody.innerHTML = '';
-
-      if (!data || data.length === 0) {
-        blacklistNoDataText.classList.remove('hidden');
-        blacklistDataTableContainer.classList.add('hidden');
-        return;
-      }
-      blacklistDataTableContainer.classList.remove('hidden');
-      
-      const opsTh = document.createElement('th');
-      opsTh.className = 'sticky top-0 z-30 bg-red-50 text-gray-800 font-bold border-b border-red-200 px-4 py-3 whitespace-nowrap';
-      opsTh.textContent = '操作';
-      blacklistDataTableHeaders.appendChild(opsTh);
-      
-      headers.forEach(h => {
-        const th = document.createElement('th');
-        th.className = 'sticky top-0 z-30 bg-red-50 text-gray-800 font-bold border-b border-red-200 px-4 py-3 whitespace-nowrap'; 
-        th.textContent = h;
-        blacklistDataTableHeaders.appendChild(th);
-      });
-
-      data.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-red-50';
-        
-        const opsTd = document.createElement('td');
-        opsTd.className = 'flex gap-2 justify-center';
-        
-        const editBtn = document.createElement('button');
-        editBtn.className = 'btn bg-blue-100 text-blue-700 px-2 py-1 text-xs rounded hover:bg-blue-200';
-        editBtn.textContent = '編輯';
-        editBtn.onclick = () => openBlacklistEditModal(row);
-        opsTd.appendChild(editBtn);
-
-        const delBtn = document.createElement('button');
-        delBtn.className = 'btn bg-red-100 text-red-700 px-2 py-1 text-xs rounded hover:bg-red-200';
-        delBtn.textContent = '刪除';
-        delBtn.onclick = () => deleteBlacklistRow(row['__row']);
-        opsTd.appendChild(delBtn);
-
-        tr.appendChild(opsTd);
-
-        headers.forEach(h => {
-          const td = document.createElement('td');
-          let val = row[h];
-          if (val && (h.includes('日期') || h.includes('Date'))) val = formatFieldValueIfDate(h, val);
-          td.textContent = val || '';
-          tr.appendChild(td);
-        });
-        blacklistDataTableBody.appendChild(tr);
-      });
-    }
-
-    function displayData(orders){
-      dataTableBody.innerHTML = '';
-      if(!orders || orders.length === 0){
-        noDataText.classList.remove('hidden');
-        dataTableContainer.classList.add('hidden');
-        noDataText.textContent = '沒有符合條件的資料。';
-        return;
-      }
-      noDataText.classList.add('hidden');
-      dataTableContainer.classList.remove('hidden');
-
-      orders.forEach(order=>{
-        const tr = document.createElement('tr'); 
-        tr.className = 'hover:bg-gray-50';
-        const status = getOrderStatus(order);
-        const statusTd = document.createElement('td');
-        statusTd.innerHTML = `<span class="status-tag ${status.class}">${pawSVG()}<span>${status.text}</span></span>`;
-        tr.appendChild(statusTd);
-
-        const editTd = document.createElement('td');
-        const editBtn = document.createElement('button');
-        editBtn.type='button';
-        editBtn.className='inline-flex justify-center items-center gap-2 px-3 py-1 rounded-md border text-sm';
-        editBtn.innerHTML='🖉 編輯';
-        editBtn.dataset.sheetRow = order['__row'];
-        editBtn.addEventListener('click', ()=> openEditModal(order['__row']));
-        editTd.appendChild(editBtn);
-        tr.appendChild(editTd);
-
-        const delTd = document.createElement('td');
-        const delBtn = document.createElement('button');
-        delBtn.type='button';
-        delBtn.className='inline-flex justify-center items-center gap-2 px-3 py-1 rounded-md text-sm border border-transparent whitespace-nowrap';
-        delBtn.style.background = '#ef4444'; delBtn.style.color = 'white';
-        delBtn.innerHTML = '刪除';
-        delBtn.dataset.sheetRow = order['__row'];
-        delBtn.addEventListener('click', ()=> { deleteRow(order['__row'], delBtn); });
-        delTd.appendChild(delBtn);
-        tr.appendChild(delTd);
-
-        tableHeadersOriginal.forEach(origHeader=>{
-          const td = document.createElement('td');
-          const rawVal = (order[origHeader] !== undefined && order[origHeader] !== null) ? order[origHeader] : '';
-          const isCustomerIdField = /客號|cust ?id|customer ?id/i.test(origHeader);
-
-          if (isCustomerIdField) {
-            td.textContent = String(rawVal);
-          } else if (origHeader === 'paid' || origHeader === '付清' || origHeader === '固定/長期客訂') {
-            td.textContent = isChecked(rawVal) ? '✔' : '';
-          } else if(origHeader === '連絡電話' || origHeader.toLowerCase().includes('電話')){
-            td.textContent = formatPhone(rawVal); td.classList.add('phone-cell');
-          } else {
-            td.textContent = formatFieldValueIfDate(origHeader, rawVal);
-          }
-          tr.appendChild(td);
-        });
-        dataTableBody.appendChild(tr);
-      });
-    }
-
-    function displayLongTermData(orders){
-      longTerm_dataTableBody.innerHTML = '';
-      if(!orders || orders.length === 0){
-        longTerm_noDataText.classList.remove('hidden');
-        longTerm_dataTableContainer.classList.add('hidden');
-        longTerm_noDataText.textContent = '沒有符合條件的資料。';
-        return;
-      }
-      longTerm_noDataText.classList.add('hidden');
-      longTerm_dataTableContainer.classList.remove('hidden');
-
-      orders.forEach(order=>{
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-50';
-        const status = getOrderStatus(order);
-        const statusTd = document.createElement('td');
-        statusTd.innerHTML = `<span class="status-tag ${status.class}">${pawSVG()}<span>${status.text}</span></span>`;
-        tr.appendChild(statusTd);
-
-        const editTd = document.createElement('td');
-        const editBtn = document.createElement('button');
-        editBtn.type='button';
-        editBtn.className='inline-flex justify-center items-center gap-2 px-3 py-1 rounded-md border text-sm';
-        editBtn.innerHTML='🖉 編輯';
-        editBtn.setAttribute('data-sheet-row', String(order['__row']));
-        editBtn.addEventListener('click', ()=> openLongTermEditModal(order['__row']));
-        editTd.appendChild(editBtn);
-        tr.appendChild(editTd);
-
-        const delTd = document.createElement('td');
-        const delBtn = document.createElement('button');
-        delBtn.type='button';
-        delBtn.className='inline-flex justify-center items-center gap-2 px-3 py-1 rounded-md text-sm border border-transparent whitespace-nowrap';
-        delBtn.style.background = '#ef4444'; delBtn.style.color = 'white';
-        delBtn.innerHTML = '刪除';
-        delBtn.setAttribute('data-sheet-row', String(order['__row']));
-        delBtn.addEventListener('click', ()=> { deleteRow(order['__row'], delBtn); });
-        delTd.appendChild(delBtn);
-        tr.appendChild(delTd);
-
-        longTerm_tableHeadersOriginal.forEach(origHeader=>{
-          const td = document.createElement('td');
-          const rawVal = (order[origHeader] !== undefined && order[origHeader] !== null) ? order[origHeader] : '';
-          const isCustomerIdField = /客號|cust ?id|customer ?id/i.test(origHeader);
-
-          if (isCustomerIdField) {
-            td.textContent = String(rawVal);
-          } else if (origHeader === 'paid' || origHeader === '付清' || origHeader === '固定/長期客訂') {
-            td.textContent = isChecked(rawVal) ? '✔' : '';
-          } else if(origHeader === '連絡電話' || origHeader.toLowerCase().includes('電話')){
-            td.textContent = formatPhone(rawVal); td.classList.add('phone-cell');
-          } else {
-            td.textContent = formatFieldValueIfDate(origHeader, rawVal);
-          }
-          tr.appendChild(td);
-        });
-        longTerm_dataTableBody.appendChild(tr);
-      });
-    }
-
-    function renderStatusTabs(containerEl, currentKey, onChange){
-      containerEl.innerHTML = '';
-      const STATUS_KEYS = [
-        { key: 'all', label: '全部' },
-        { key: '尚未處理', label: '尚未處理' },
-        { key: '已採購等到貨', label: '已採購等到貨' },
-        { key: '已到貨還未聯絡', label: '已到貨還未聯絡' },
-        { key: '已到貨未接電話', label: '已到貨未接電話' },
-        { key: '已通知等取貨', label: '已通知等取貨' },
-        { key: '已取貨', label: '已取貨(取走)' }
-      ];
-      STATUS_KEYS.forEach(s=>{
-        const btn = document.createElement('div');
-        btn.className = 'status-tab' + (s.key === currentKey ? ' active' : '');
-        if(s.key === 'all') btn.classList.add('all');
-        btn.textContent = s.label;
-        btn.dataset.key = s.key;
-        btn.addEventListener('click', ()=>{ onChange(s.key); });
-        containerEl.appendChild(btn);
-      });
-    }
-
-    // --- Filter Functions (Defined BEFORE Usage) ---
-    function filterAndDisplayData(){
-      const term = (searchInput.value || '').toLowerCase().trim();
-      const searchDigits = digitsOnly(term);
-      let filtered = allOrders.slice();
-      if(currentStatusFilter && currentStatusFilter !== 'all'){
-        filtered = filtered.filter(order => {
-          const st = getOrderStatus(order).text;
-          if(currentStatusFilter === '已取貨') return st === '已取貨';
-          return st === currentStatusFilter;
-        });
-      }
-      if(!term){ hideDataMessage(); displayData(filtered); return; }
-      const result = filtered.filter(order=>{
-        const id = String(order['客號'] || '').toLowerCase();
-        const name = String(order['姓名'] || '').toLowerCase();
-        const phone = String(order['連絡電話'] || '').toLowerCase();
-        const status = getOrderStatus(order).text.toLowerCase();
-        const phoneDigits = digitsOnly(order['連絡電話']);
-        const matchByNumber = searchDigits && phoneDigits.includes(searchDigits);
-        const productA = String(order['客訂商品A'] || '').toLowerCase();
-        const specA = String(order['A商品規格'] || '').toLowerCase();
-        const productB = String(order['客訂商品B'] || '').toLowerCase();
-        const specB = String(order['B商品規格'] || '').toLowerCase();
-        return id.includes(term) || name.includes(term) || phone.includes(term) || status.includes(term) || matchByNumber || productA.includes(term) || specA.includes(term) || productB.includes(term) || specB.includes(term);
-      });
-      if(result.length === 0){ displayData([]); showDataMessage('info', '找不到符合條件的資料。'); }
-      else { hideDataMessage(); displayData(result); }
-    }
-
-    function filterAndDisplayLongTermData(){
-      const term = (longTerm_searchInput.value || '').toLowerCase().trim();
-      const searchDigits = digitsOnly(term);
-      let filtered = allLongTermOrders.slice();
-      if(currentLTStatusFilter && currentLTStatusFilter !== 'all'){
-        filtered = filtered.filter(order => {
-          const st = getOrderStatus(order).text;
-          if(currentLTStatusFilter === '已取貨') return st === '已取貨';
-          return st === currentLTStatusFilter;
-        });
-      }
-      if(!term){ hideDataMessage(true); displayLongTermData(filtered); return; }
-      const result = filtered.filter(order=>{
-        const id = String(order['客號'] || '').toLowerCase();
-        const name = String(order['姓名'] || '').toLowerCase();
-        const phone = String(order['連絡電話'] || '').toLowerCase();
-        const status = getOrderStatus(order).text.toLowerCase();
-        const phoneDigits = digitsOnly(order['連絡電話']);
-        const matchByNumber = searchDigits && phoneDigits.includes(searchDigits);
-        const productA = String(order['客訂商品A'] || '').toLowerCase();
-        const specA = String(order['A商品規格'] || '').toLowerCase();
-        const productB = String(order['客訂商品B'] || '').toLowerCase();
-        const specB = String(order['B商品規格'] || '').toLowerCase();
-        return id.includes(term) || name.includes(term) || phone.includes(term) || status.includes(term) || matchByNumber || productA.includes(term) || specA.includes(term) || productB.includes(term) || specB.includes(term);
-      });
-      if(result.length === 0){ displayLongTermData([]); showDataMessage('info', '找不到符合條件的資料。', true); }
-      else { hideDataMessage(true); displayLongTermData(result); }
-    }
-    
-    function filterBlacklist() {
-      const term = (blacklistSearchInput.value || '').toLowerCase().trim();
-      if (!term) { fetchBlacklistData(); return; }
-      const filtered = allBlacklistData.filter(row => Object.values(row).some(val => String(val).toLowerCase().includes(term)));
-      const rows = blacklistDataTableBody.querySelectorAll('tr');
-      let visibleCount = 0;
-      rows.forEach((tr, idx) => {
-        const rowData = allBlacklistData[idx];
-        const match = Object.values(rowData).some(val => String(val).toLowerCase().includes(term));
-        tr.style.display = match ? '' : 'none';
-        if (match) visibleCount++;
-      });
-      if (visibleCount === 0) blacklistNoDataText.classList.remove('hidden');
-      else blacklistNoDataText.classList.add('hidden');
-    }
-
-    function setMainStatusFilter(key){
-      currentStatusFilter = key;
-      renderStatusTabs(statusTabsEl, currentStatusFilter, setMainStatusFilter);
-      filterAndDisplayData();
-    }
-    function setLTStatusFilter(key){
-      currentLTStatusFilter = key;
-      renderStatusTabs(ltStatusTabsEl, currentLTStatusFilter, setLTStatusFilter);
-      filterAndDisplayLongTermData();
-    }
-
-    // --- Async Actions ---
-    async function fetchBlacklistData() {
-      blacklistDataLoader.classList.remove('hidden');
-      blacklistDataTableContainer.classList.add('hidden');
-      blacklistNoDataText.classList.add('hidden');
-      try {
-        const resp = await fetch(`${SCRIPT_URL}?action=blacklist`);
-        const json = await resp.json();
-        if (json.result === 'success') {
-          allBlacklistData = json.rows || [];
-          renderBlacklistTable(allBlacklistData, json.headers || []);
-        } else {
-          blacklistNoDataText.textContent = '無法讀取黑名單資料。';
-          blacklistNoDataText.classList.remove('hidden');
-        }
-      } catch (e) { console.error('Fetch blacklist failed:', e); } finally { blacklistDataLoader.classList.add('hidden'); }
-    }
-
-    async function deleteRow(rowValue, btnElement){
-      const store = storeSelect.value || '';
-      if(!rowValue){ console.error('找不到要刪除的列'); return; }
-      
-      // UI Feedback
-      let originalText = '刪除';
-      if(btnElement){
-        originalText = btnElement.textContent;
-        btnElement.disabled = true;
-        btnElement.textContent = '刪除中...';
-        btnElement.classList.add('opacity-50', 'cursor-not-allowed');
-      }
-
-      try {
-        const fd = new FormData();
-        fd.append('action', 'delete');
-        fd.append('row', rowValue);
-        if(store) fd.append('store', store);
-        const resp = await fetch(SCRIPT_URL, { method:'POST', body: fd });
-        const json = await resp.json();
-        if(json && json.result === 'success'){
-          showMessage('success','<strong>刪除成功：</strong> 已移除資料。');
-          await fetchOrderData();
-        } else {
-          throw new Error((json && json.error) ? json.error : '伺服器回傳錯誤');
-        }
-      } catch(err){
-        console.error('刪除失敗:', err);
-        let msg = err.message;
-        if(msg.includes('row 不正確')) msg += ' (資料可能已過期，請重新整理)';
-        showMessage('error','<strong>刪除失敗：</strong>' + msg);
-        
-        // Revert button if failed
-        if(btnElement){
-          btnElement.disabled = false;
-          btnElement.textContent = originalText;
-          btnElement.classList.remove('opacity-50', 'cursor-not-allowed');
-        }
-      }
-    }
-
-    // 新增：僅呼叫 API 刪除列，不重新抓取資料 (用於大量刪除迴圈)
-    async function deleteRowSilent(rowValue) {
-      const store = storeSelect.value || '';
-      if(!rowValue) throw new Error('no row value');
-      
-      const fd = new FormData();
-      fd.append('action', 'delete');
-      fd.append('row', rowValue);
-      if(store) fd.append('store', store);
-      
-      const resp = await fetch(SCRIPT_URL, { method:'POST', body: fd });
-      const json = await resp.json();
-      if(json && json.result === 'success') return true;
-      throw new Error((json && json.error) ? json.error : 'server error');
-    }
-
-    async function fetchStores(){
-      showTopMessage('讀取分店清單中...');
-      try{
-        const resp = await fetch(`${SCRIPT_URL}?action=stores`);
-        if(!resp.ok) throw new Error(resp.statusText || 'network error');
-        const json = await resp.json();
-        let stores = [];
-        if(json && Array.isArray(json.stores)) stores = json.stores;
-        else if(json && Array.isArray(json.rows)) stores = json.rows.map(r => r ? { code: r[Object.keys(r)[0]], name: r[Object.keys(r)[1]] || '' } : null).filter(Boolean);
-        else if(json && Array.isArray(json.values)) json.values.forEach((r,i) => { if(i>0 && r.length) stores.push({code:r[0], name:r[1]||''}); });
-        else if(json && json.result==='success' && Array.isArray(json.data)) stores = json.data;
-        
-        stores = stores.map(s => {
-           if(typeof s === 'string') return { code: s, name: '' };
-           if(s && s.code) return { code: String(s.code), name: String(s.name||'') };
-           if(s && typeof s === 'object') { const vals = Object.values(s); return { code: String(vals[0]||''), name: String(vals[1]||'') }; }
-           return null;
-        }).filter(Boolean);
-
-        populateStoreSelect(stores);
-        showTopMessage('', false);
-        return stores;
-      }catch(err){
-        console.error('fetchStores failed', err);
-        showTopMessage('無法取得分店（後端錯誤或回傳格式非預期）', true);
-        return [];
-      }
-    }
-
-    function populateStoreSelect(stores){
-      const prev = storeSelect.value || '';
-      storeSelect.innerHTML = '';
-      const opt = document.createElement('option');
-      opt.value = '';
-      opt.textContent = '-- 請選擇店別 --';
-      storeSelect.appendChild(opt);
-      stores.forEach(s => {
-        const o = document.createElement('option');
-        o.value = s.code || s[0] || '';
-        const name = (s.name||'').trim();
-        o.textContent = o.value + (name ? ` — ${name}` : '');
-        storeSelect.appendChild(o);
-      });
-      if(prev) { const found = Array.from(storeSelect.options).some(o => o.value === prev); if(found) storeSelect.value = prev; }
-      if(!storeSelect.value && storeSelect.options.length === 2) storeSelect.selectedIndex = 1;
-      updateStoreLockUI();
-    }
-
-    async function refreshStoresAndCreateMissing(){
-      showTopMessage('正在檢查並建立缺少的分店工作表...');
-      try{
-        const fd = new FormData();
-        fd.append('action','create_store_sheets');
-        await fetch(SCRIPT_URL, { method:'POST', body: fd });
-        showTopMessage('已建立缺少的分店工作表（或無需建立）。', false);
-      }catch(err){
-        console.error('create_store_sheets failed', err);
-        showTopMessage('建立分店工作表失敗（網路或後端錯誤）', true);
-      } finally {
-        await fetchStores();
-      }
-    }
-
-    async function getStoreLockValue(store){
-      if(!store) return false;
-      try{
-        const resp = await fetch(`${SCRIPT_URL}?action=get_store_lock&store=${encodeURIComponent(store)}`);
-        const json = await resp.json();
-        if(json && json.result === 'success') return json.locked === '1' || json.locked === true;
-      }catch(err){ console.warn('getStoreLockValue error', err); }
-      return false;
-    }
-
-    async function setStoreLockValue(store, locked){
-      if(!store) return;
-      try{
-        const fd = new FormData();
-        fd.append('action','set_store_lock');
-        fd.append('store', store);
-        fd.append('locked', locked ? '1' : '0');
-        const resp = await fetch(SCRIPT_URL, { method:'POST', body: fd });
-        const json = await resp.json();
-        return json && json.result === 'success';
-      }catch(err){ console.warn('setStoreLockValue error', err); return false; }
-    }
-
-    async function updateStoreLockUI(){
-      const store = storeSelect.value;
-      if(!store){
-        storeLockCheckbox.checked = false;
-        storeLockCheckbox.disabled = true;
-        storeSelect.classList.remove('select-disabled');
-        return;
-      }
-      storeLockCheckbox.disabled = false;
-      try{
-        const locked = await getStoreLockValue(store);
-        storeLockCheckbox.checked = !!locked;
-        if(locked){
-          storeSelect.classList.add('select-disabled');
-          storeSelect.disabled = true;
-        } else {
-          storeSelect.classList.remove('select-disabled');
-          storeSelect.disabled = false;
-        }
-      }catch(e){ console.warn(e); }
-    }
-
-    async function fetchOrderData(){
-      dataLoader.classList.remove('hidden');
-      longTerm_dataLoader.classList.remove('hidden');
-      dataTableContainer.classList.add('hidden');
-      longTerm_dataTableContainer.classList.add('hidden');
-      noDataText.classList.add('hidden'); 
-      longTerm_noDataText.classList.add('hidden');
-      hideDataMessage();
-      hideDataMessage(true);
-
-      const store = storeSelect.value || '';
-
-      try{
-        const url = store ? `${SCRIPT_URL}?store=${encodeURIComponent(store)}` : SCRIPT_URL;
-        const resp = await fetch(url);
-        if(!resp.ok) throw new Error(resp.statusText);
-        const data = await resp.json();
-        if(data.error) throw new Error(data.error);
-
-        const allData = data.rows || data.values || data.data || [];
-        tableHeadersOriginal = data.headers || data.columns || (data.values ? data.values[0] : []) || [];
-
-        if(Array.isArray(data.values) && data.values.length>0 && (!tableHeadersOriginal || tableHeadersOriginal.length===0)){
-          tableHeadersOriginal = data.values[0].map(h=>String(h||'').trim());
-        }
-
-        longTerm_tableHeadersOriginal = Array.isArray(tableHeadersOriginal) ? tableHeadersOriginal.slice() : [];
-
-        let rows = [];
-        if(Array.isArray(allData) && allData.length>0 && Array.isArray(allData[0])){
-          const vals = allData;
-          const headersRow = vals[0].map(h=>String(h||'').trim());
-          for(let r=1;r<vals.length;r++){
-            const rowArr = vals[r];
-            const obj = {};
-            headersRow.forEach((hh, idx)=> obj[hh] = rowArr[idx]);
-            obj['__row'] = r+1;
-            rows.push(obj);
-          }
-        } else {
-          rows = allData.map(r => r);
-        }
-
-        // separate long term vs normal
-        allOrders = [];
-        allLongTermOrders = [];
-        rows.forEach(order=>{
-          if(isChecked(order['固定/長期客訂'])) allLongTermOrders.push(order);
-          else allOrders.push(order);
-        });
-
-        // sort
-        allOrders.sort((a,b)=>{
-          const aClosed = (getOrderStatus(a).text === '已取貨');
-          const bClosed = (getOrderStatus(b).text === '已取貨');
-          if(aClosed !== bClosed) return aClosed ? 1 : -1;
-          return getOrderTimestamp(b) - getOrderTimestamp(a);
-        });
-        allLongTermOrders.sort((a,b)=>{
-          return getOrderTimestamp(b) - getOrderTimestamp(a);
-        });
-
-        // render tabs
-        renderStatusTabs(statusTabsEl, currentStatusFilter, setMainStatusFilter);
-        renderStatusTabs(ltStatusTabsEl, currentLTStatusFilter, setLTStatusFilter);
-
-        // render headers first
-        const displayHeaders = tableHeadersOriginal.map(h => headerNameMap[h] || h);
-        renderTableHeaders(displayHeaders);
-
-        const longDisplayHeaders = longTerm_tableHeadersOriginal.map(h => headerNameMap[h] || h);
-        renderLongTermTableHeaders(longDisplayHeaders);
-
-        // render data using filters
-        filterAndDisplayData();
-        filterAndDisplayLongTermData();
-
-      }catch(err){
-        console.error('讀取資料失敗:', err);
-        const errMsg = '<strong>讀取資料失敗：</strong>' + err.message;
-        showDataMessage('error', errMsg);
-        showDataMessage('error', errMsg, true);
-        noDataText.classList.remove('hidden'); noDataText.textContent = '讀取資料失敗。';
-        longTerm_noDataText.classList.remove('hidden');
-        longTerm_noDataText.textContent = '讀取資料失敗。';
-      }finally{
-        dataLoader.classList.add('hidden');
-        longTerm_dataLoader.classList.add('hidden');
-      }
-    }
-
-    // --- Tag Helpers ---
+    // Tag Helpers (Moved to top to prevent ReferenceError)
     function setupTagControls(addBtn, stampBtn, inputEl, tagsContainer, hiddenInput){
       let items = [];
       addBtn && addBtn.addEventListener('click', ()=>{
@@ -1398,16 +775,85 @@
         hiddenInput.value = items.join(', ');
       }
       tagsContainer.addEventListener('click', (e)=>{
-        if(e.target.classList.contains('remove')){
-          const d = e.target.dataset.date;
+        const removeBtn = e.target.closest('.remove');
+        if(removeBtn){
+          const d = removeBtn.dataset.date;
           items = items.filter(x=>x!==d); render();
         }
       });
       return { setItems(arr){ items = (arr||[]).filter(Boolean); items.sort(); render(); }, getItems(){ return items.slice(); } };
     }
 
-    const editMissedCtrl = setupTagControls(editAddMissed, editStampMissed, editMissedInput, editMissedTags, editMissedHidden);
-    const editNotifyCtrl = setupTagControls(editAddNotify, editStampNotify, editNotifyInput, editNotifyTags, editNotifyHidden);
+    // Accordion Logic
+    function toggleAccordion(btn, content, icon) {
+      btn.addEventListener('click', () => {
+        const isOpen = content.classList.contains('open');
+        content.classList.toggle('open');
+        icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+      });
+    }
+    
+    toggleAccordion(document.getElementById('formToggleBtn'), document.getElementById('formContent'), document.getElementById('arrowIcon'));
+    toggleAccordion(document.getElementById('longTermToggleBtn'), document.getElementById('longTermContent'), document.getElementById('longTermArrowIcon'));
+    toggleAccordion(document.getElementById('blacklistToggleBtn'), document.getElementById('blacklistContent'), document.getElementById('blacklistArrowIcon'));
+
+    // DOM Elements & Refs
+    const storeSelect = document.getElementById('storeSelect');
+    const storeLockCheckbox = document.getElementById('storeLockCheckbox');
+    const notifyToggle = document.getElementById('notifyToggle');
+    const refreshStoresBtn = document.getElementById('refreshStoresBtn');
+    const backupBtn = document.getElementById('backupBtn'); 
+    
+    // Backup Modal Elements
+    const backupModalBackdrop = document.getElementById('backupModalBackdrop');
+    const closeBackupModal = document.getElementById('closeBackupModal');
+    const cancelBackupBtn = document.getElementById('cancelBackupBtn');
+    const confirmBackupBtn = document.getElementById('confirmBackupBtn');
+    const backupModalContent = document.getElementById('backupModalContent');
+
+    const form = document.getElementById('orderForm');
+    const submitButton = document.getElementById('submitButton');
+    const currentStoreBadge = document.getElementById('currentStoreBadge');
+    const topMessage = document.getElementById('top-message');
+
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    const refreshButton = document.getElementById('refreshButton');
+    const clearOverdueBtn = document.getElementById('clearOverdueBtn');
+    
+    const longTerm_searchInput = document.getElementById('longTerm_searchInput');
+    const longTerm_searchButton = document.getElementById('longTerm_searchButton');
+    const longTerm_refreshButton = document.getElementById('longTerm_refreshButton');
+
+    const blacklistSearchInput = document.getElementById('blacklist_searchInput');
+    const blacklistSearchButton = document.getElementById('blacklist_searchButton');
+    const blacklistAddButton = document.getElementById('blacklist_addButton');
+    
+    // History Modal Elements
+    const searchHistoryBtn = document.getElementById('searchHistoryBtn');
+    const historyModalBackdrop = document.getElementById('historyModalBackdrop');
+    const closeHistoryModal = document.getElementById('closeHistoryModal');
+    const historySearchInput = document.getElementById('historySearchInput');
+    const historySearchBtn = document.getElementById('historySearchBtn');
+    const historyLoader = document.getElementById('historyLoader');
+    const historyNoData = document.getElementById('historyNoData');
+    const historyTableBody = document.getElementById('history-table-body');
+    const historyTableHeaders = document.getElementById('history-table-headers');
+    
+    // Data Variables
+    let allOrders = [];
+    let allLongTermOrders = [];
+    let allBlacklistData = [];
+    let allStoresCache = []; // 新增：用於快取店別資料 (代碼 vs 名稱)
+    let currentFilter = 'all';
+    let dataTableHeaders = document.getElementById('data-table-headers');
+    let longTerm_dataTableHeaders = document.getElementById('longTerm_data-table-headers');
+    let blacklistDataTableHeaders = document.getElementById('blacklist_data-table-headers');
+    let blacklistDataTableBody = document.getElementById('blacklist_data-table-body');
+    
+    // Init Helpers
+    const editMissedCtrl = setupTagControls(document.getElementById('editAddMissed'), document.getElementById('editStampMissed'), document.getElementById('editMissedInput'), document.getElementById('editMissedTags'), document.getElementById('editMissedHidden'));
+    const editNotifyCtrl = setupTagControls(document.getElementById('editAddNotify'), document.getElementById('editStampNotify'), document.getElementById('editNotifyInput'), document.getElementById('editNotifyTags'), document.getElementById('editNotifyHidden'));
 
     const longTerm_editPurchaseCtrl = setupTagControls(longTerm_editPurchaseCtrl_el.addBtn, longTerm_editPurchaseCtrl_el.stampBtn, longTerm_editPurchaseCtrl_el.inputEl, longTerm_editPurchaseCtrl_el.tagsContainer, longTerm_editPurchaseCtrl_el.hiddenInput);
     const longTerm_editArrivalCtrl = setupTagControls(longTerm_editArrivalCtrl_el.addBtn, longTerm_editArrivalCtrl_el.stampBtn, longTerm_editArrivalCtrl_el.inputEl, longTerm_editArrivalCtrl_el.tagsContainer, longTerm_editArrivalCtrl_el.hiddenInput);
@@ -1415,113 +861,727 @@
     const longTerm_editMissedCtrl = setupTagControls(longTerm_editMissedCtrl_el.addBtn, longTerm_editMissedCtrl_el.stampBtn, longTerm_editMissedCtrl_el.inputEl, longTerm_editMissedCtrl_el.tagsContainer, longTerm_editMissedCtrl_el.hiddenInput);
     const longTerm_editNotifyCtrl = setupTagControls(longTerm_editNotifyCtrl_el.addBtn, longTerm_editNotifyCtrl_el.stampBtn, longTerm_editNotifyCtrl_el.inputEl, longTerm_editNotifyCtrl_el.tagsContainer, longTerm_editNotifyCtrl_el.hiddenInput);
 
-    // --- Listeners Initialization ---
-    // 新增：監聽電話輸入，比對黑名單 (改為不跳窗、改為完全符合才警告)
-    const phoneInput = document.getElementById('phone');
-    const phoneWarning = document.getElementById('phone-warning'); // 取得警告顯示容器
-
-    phoneInput.addEventListener('input', function() {
-      // 1. 取得輸入值並去除所有非數字
-      const inputVal = this.value.trim().replace(/\D/g, ''); 
-      // 2. 取得「去除開頭0」的版本 (例如 0912 -> 912)
-      const inputNoZero = inputVal.replace(/^0+/, ''); 
-
-      // 3. 重置狀態：隱藏警告、恢復輸入框樣式
-      phoneWarning.classList.add('hidden');
-      phoneWarning.textContent = '';
-      this.style.borderColor = '';
-      this.style.backgroundColor = '';
-
-      // 防干擾：如果去除 0 後長度太短，不用檢查 (避免輸入單個數字就觸發)
-      if (inputNoZero.length < 6) return;
-
-      if (allBlacklistData && allBlacklistData.length > 0) {
-        const found = allBlacklistData.find(row => {
-          // 嘗試取得該列的電話資料
-          const rawPhone = row['電話'] || row['連絡電話'] || row['phone'] || '';
-          // 取得該列電話的「去除開頭0」版本
-          const rowPhoneNoZero = String(rawPhone).replace(/\D/g, '').replace(/^0+/, '');
-          
-          if (!rowPhoneNoZero) return false;
-
-          // 核心比對邏輯：改為【完全相等 ===】
-          // 只有當輸入的號碼跟黑名單號碼完全一樣時才警告 (忽略開頭0)
-          return rowPhoneNoZero === inputNoZero;
-        });
-
-        if (found) {
-             const msg = `⚠️ 警告！此電話號碼 (${inputVal}) 在黑名單中！(原因：${found['原因'] || '未填寫'}, 姓名：${found['姓名'] || '未知'})`;
-             
-             // 顯示警告文字
-             phoneWarning.textContent = msg;
-             phoneWarning.classList.remove('hidden');
-             
-             // 改變輸入框樣式為紅色
-             this.style.borderColor = 'red';
-             this.style.backgroundColor = '#fef2f2';
-        }
-      }
+    // Init
+    window.addEventListener('load', async () => {
+      renderTabs();
+      await fetchStores();
+      await fetchOrders(); 
+      fetchBlacklistData();
     });
 
-    // Form Submit (重要：這是您之前遺失的「送出訂單」功能)
+    // Helper Functions
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function todayLocalForInput() { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+    function digitsOnly(s){ return String(s||'').replace(/\D/g,''); }
+    function parseMultiDateStringToArray(dateString) {
+        if (!dateString || typeof dateString !== 'string') return [];
+        return dateString.split(/[,;，\s]+/).map(s => toDateOnly(s)).filter(Boolean);
+    }
+    function toDateOnly(val) {
+      if (!val && val !== 0) return '';
+      const s = String(val).trim();
+      const m1 = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+      if (m1) {
+        return `${m1[1]}-${String(m1[2]).padStart(2,'0')}-${String(m1[3]).padStart(2,'0')}`;
+      }
+      return '';
+    }
+    
+    function isChecked(value) {
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'string') {
+            const s = value.toLowerCase().trim();
+            return s === '是' || s === 'true' || s === '1' || s === 'yes';
+        }
+        return false;
+    }
+    
+    function showTopMessage(txt, isError=false){
+      if(!txt){ topMessage.classList.add('hidden'); topMessage.textContent=''; return; }
+      topMessage.textContent = txt;
+      topMessage.classList.remove('hidden');
+      topMessage.style.color = isError ? '#b91c1c' : '#065f46';
+    }
+    
+    function formatFieldValueIfDate(header, val) {
+       // Simple passthrough or formatting if needed for blacklist
+       if(!val) return '';
+       if (header.includes('日期') || header.includes('Date')) {
+           return formatDateShort(val);
+       }
+       return val;
+    }
+    
+    function getSelectedStoreName() {
+        const opt = storeSelect.options[storeSelect.selectedIndex];
+        return opt ? (opt.dataset.name || opt.text) : '';
+    }
+
+    // Tabs
+    function renderTabs() {
+      const STATUS_TABS = [
+        { key: 'all', label: '全部' },
+        { key: '未處理', label: '未處理' },
+        { key: '已採購', label: '已採購' },
+        { key: '已到貨', label: '已到貨' },
+        { key: '已通知', label: '已通知' },
+        { key: '未接', label: '未接' },
+        { key: '已取貨', label: '已取貨' }
+      ];
+      const container = document.getElementById('statusTabs');
+      container.innerHTML = STATUS_TABS.map(tab => `
+        <button class="tab-btn ${tab.key === currentFilter ? 'active' : ''}" 
+                onclick="setFilter('${tab.key}')">
+          ${tab.label}
+        </button>
+      `).join('');
+    }
+    window.setFilter = (key) => { currentFilter = key; renderTabs(); renderTable(); };
+
+    // Fetch Stores
+    async function fetchStores() {
+      try {
+        const resp = await fetch(`${SCRIPT_URL}?action=stores`);
+        const json = await resp.json();
+        const stores = json.stores || [];
+        
+        allStoresCache = stores; // 儲存店別清單以供查詢
+
+        storeSelect.innerHTML = '<option value="">請選擇店別</option>';
+        stores.forEach(s => {
+          if(s.name === '店名' || s.code === '店編號') return;
+          const opt = document.createElement('option');
+          opt.value = s.code; 
+          opt.textContent = s.name ? `${s.name}` : s.code;
+          // === 修正：加入 data-name 屬性以確保能抓到正確店名 ===
+          opt.dataset.name = s.name || s.code;
+          storeSelect.appendChild(opt);
+        });
+        const saved = localStorage.getItem('selected_store');
+        if(saved && Array.from(storeSelect.options).some(o=>o.value===saved)) {
+          storeSelect.value = saved; updateStoreDisplay();
+        }
+        checkStoreSettings(); 
+      } catch(e) { console.error(e); }
+    }
+    
+    storeSelect.addEventListener('change', () => {
+      localStorage.setItem('selected_store', storeSelect.value);
+      updateStoreDisplay(); 
+      checkStoreSettings();
+      fetchOrders();
+    });
+    
+    function updateStoreDisplay() {
+      const text = storeSelect.options[storeSelect.selectedIndex]?.text;
+      if(text && storeSelect.value) { currentStoreBadge.textContent = text; currentStoreBadge.classList.remove('hidden'); }
+      else { currentStoreBadge.classList.add('hidden'); }
+    }
+
+    // Fetch Orders
+    async function fetchOrders() {
+      document.getElementById('dataLoader').classList.remove('hidden');
+      document.getElementById('data-table-body').innerHTML = '';
+      document.getElementById('noDataText').classList.add('hidden');
+      document.getElementById('data-message-box').classList.add('hidden'); // Clear previous errors
+      
+      const store = storeSelect.value;
+      const url = store ? `${SCRIPT_URL}?store=${encodeURIComponent(store)}` : SCRIPT_URL;
+      try {
+        const resp = await fetch(url);
+        const json = await resp.json();
+        const rows = json.rows || [];
+        allOrders = []; allLongTermOrders = [];
+        rows.forEach(r => {
+           if(r['固定/長期客訂'] === '是' || r['固定/長期客訂'] === true) allLongTermOrders.push(r);
+           else allOrders.push(r);
+        });
+        
+        const fixedHeaders = ['姓名', '手機號碼', '商品', '進度', '付清', '建立日期', '最後更新'];
+        renderTableHeaders(fixedHeaders);
+        const longTermHeaders = ['姓名', '手機號碼', '商品', '進度', '付清', '建立日期', '最後更新'];
+        renderLongTermTableHeaders(longTermHeaders);
+
+        renderTable(); 
+        renderLongTermTable();
+      } catch(e) { 
+        console.error(e); 
+        document.getElementById('data-message-box').classList.remove('hidden');
+        document.getElementById('data-message-box').textContent = '讀取失敗：' + e.message;
+      } finally { document.getElementById('dataLoader').classList.add('hidden'); }
+    }
+
+    function renderTableHeaders(displayHeaders){
+      if(!dataTableHeaders) return;
+      dataTableHeaders.innerHTML = '';
+      const headers = ['狀態','刪除', ...displayHeaders];
+      headers.forEach(h=>{
+        const th = document.createElement('th');
+        th.className = 'sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap'; 
+        th.textContent = h;
+        dataTableHeaders.appendChild(th);
+      });
+    }
+
+    function renderLongTermTableHeaders(displayHeaders){
+      if(!longTerm_dataTableHeaders) return;
+      longTerm_dataTableHeaders.innerHTML = '';
+      const headers = ['狀態','刪除', ...displayHeaders];
+      headers.forEach(h=>{
+        const th = document.createElement('th');
+        th.className = 'sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap';
+        th.textContent = h;
+        longTerm_dataTableHeaders.appendChild(th);
+      });
+    }
+
+    // Render Table
+    function renderTable() {
+      const tbody = document.getElementById('data-table-body');
+      const noData = document.getElementById('noDataText');
+      const tableContainer = document.getElementById('dataTableContainer');
+      tbody.innerHTML = '';
+      const term = document.getElementById('searchInput').value.trim().toLowerCase();
+      let filtered = allOrders.filter(o => {
+        const status = getStatus(o);
+        if (currentFilter !== 'all' && status.key !== currentFilter) return false;
+        if (!term) return true;
+        return Object.values(o).some(val => String(val).toLowerCase().includes(term));
+      });
+      filtered.sort((a,b) => {
+         const ta = new Date(a['最後更新時間'] || a['建立日期'] || 0).getTime();
+         const tb = new Date(b['最後更新時間'] || b['建立日期'] || 0).getTime();
+         return tb - ta;
+      });
+      
+      if(filtered.length === 0) { 
+        noData.classList.remove('hidden'); 
+        tableContainer.classList.add('hidden'); // Hide table when empty
+        return; 
+      }
+      else { 
+        noData.classList.add('hidden'); 
+        tableContainer.classList.remove('hidden'); // Show table when has data
+      }
+
+      filtered.forEach(order => {
+        const tr = document.createElement('tr');
+        
+        // --- 核心邏輯：判斷 Line通知 決定背景色 ---
+        const isLineNotify = isChecked(order['Line通知']);
+        
+        if (isLineNotify) {
+            // 打勾：淺綠色，並加上 hover 效果
+            tr.className = 'bg-green-100 hover:bg-green-200 cursor-pointer transition-colors border-l-4 border-green-400';
+        } else {
+            // 沒打勾：維持原本的斑馬紋 (一行白、一行灰)
+            tr.className = 'bg-white even:bg-gray-50 hover:bg-indigo-50 cursor-pointer transition-colors';
+        }
+
+        tr.onclick = (e) => { if(e.target.closest('button')) return; openEditModal(order); };
+        const status = getStatus(order);
+        
+        const productA = order['客訂商品A'] ? `[${order['客訂商品A']}]${order['A商品規格'] ? `(${order['A商品規格']})` : ''} ${order['A數量'] ? 'x' + order['A數量'] : ''}` : '';
+        const productB = order['客訂商品B'] ? `[${order['客訂商品B']}]${order['B商品規格'] ? `(${order['B商品規格']})` : ''} ${order['B數量'] ? 'x' + order['B數量'] : ''}` : '';
+        
+        const formatMulti = (val) => {
+            if(!val) return '';
+            const parts = String(val).split(/[,;，\s]+/).filter(Boolean);
+            if(parts.length === 0) return '';
+            return parts.map(d => {
+                const dobj = new Date(d);
+                if(isNaN(dobj.getTime())) return d;
+                return `${pad(dobj.getMonth()+1)}/${pad(dobj.getDate())}`;
+            }).join(', ');
+        };
+
+        const formatDateMMDD = (val) => {
+            if(!val) return '';
+            const d = new Date(val);
+            if(isNaN(d.getTime())) return String(val).substring(0, 10);
+            return `${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+        }
+
+        let dateDisplay = '';
+        if(order['採購日期']) dateDisplay += `<div class="text-xs text-blue-600">採購: ${formatDateMMDD(order['採購日期'])}</div>`;
+        if(order['到貨日期']) dateDisplay += `<div class="text-xs text-purple-600">到貨: ${formatDateMMDD(order['到貨日期'])}</div>`;
+        
+        if(order['未接電話日期']) dateDisplay += `<div class="text-xs text-red-500">未接: ${formatMulti(order['未接電話日期'])}</div>`;
+        if(order['通知日期']) dateDisplay += `<div class="text-xs text-orange-600">通知: ${formatMulti(order['通知日期'])}</div>`;
+        
+        if(order['取走日期']) dateDisplay += `<div class="text-xs text-green-600">取走: ${formatDateMMDD(order['取走日期'])}</div>`;
+        if(!dateDisplay) dateDisplay = `<div class="text-xs text-gray-400">${formatDateMMDD(order['建立日期'])}</div>`;
+
+        let phoneDisplay = order['電話'] || order['連絡電話'] || '';
+        if (phoneDisplay) {
+             phoneDisplay = formatPhone(phoneDisplay);
+        }
+
+        const isPaid = isChecked(order['付清'] || order['paid']);
+        const paidDisplay = isPaid ? '<span class="text-green-600 font-bold">是</span>' : '<span class="text-gray-400">否</span>';
+
+        const createdDate = formatDateMMDD(order['建立日期'] || order['creationDate'] || order['建立時間']);
+        const updatedDate = formatDateMMDD(order['最後更新時間']);
+
+        tr.innerHTML = `
+          <td><span class="status-badge ${status.class}">${status.label}</span></td>
+          <td class="text-center"> <!-- FIXED: Center using text-center -->
+             <button type="button" class="btn bg-red-100 text-red-600 px-2 py-1 text-xs" onclick="deleteRow(${order['__row']})">刪除</button>
+          </td>
+          <td data-label="姓名" class="font-medium text-gray-900">${order['姓名'] || '未知'}</td>
+          <td data-label="手機號碼">${phoneDisplay}</td>
+          <td data-label="商品" class="mobile-full-width">
+             <div class="font-medium text-indigo-900">${productA}</div>
+             ${productB ? `<div class="font-medium text-indigo-900 mt-1">${productB}</div>` : ''}
+          </td>
+          <td data-label="進度" class="text-gray-500">
+             ${dateDisplay || '-'}
+          </td>
+          <td data-label="付清">${paidDisplay}</td>
+          <td data-label="建立日期" class="text-xs text-gray-400">${createdDate}</td>
+          <td data-label="最後更新" class="text-xs text-gray-400">${updatedDate}</td>
+        `;
+        
+        const delBtn = tr.querySelector('button[onclick^="deleteRow"]');
+        if(delBtn) {
+            delBtn.onclick = (e) => { e.stopPropagation(); if(confirm('刪除?')) deleteRow(order['__row']); };
+            delBtn.removeAttribute('onclick');
+        }
+
+        tbody.appendChild(tr);
+      });
+    }
+    
+    function renderLongTermTable() {
+      const tbody = document.getElementById('longTerm_data-table-body');
+      const noData = document.getElementById('longTerm_noDataText');
+      const tableContainer = document.getElementById('longTerm_dataTableContainer');
+      tbody.innerHTML = '';
+      const term = document.getElementById('longTerm_searchInput').value.trim().toLowerCase();
+      let filtered = allLongTermOrders.filter(o => {
+        if (!term) return true;
+        // Search Filter fix: search all values
+        return Object.values(o).some(val => String(val).toLowerCase().includes(term));
+      });
+      
+      if(filtered.length === 0) { 
+        noData.classList.remove('hidden'); 
+        tableContainer.classList.add('hidden'); // Hide table when empty
+        return; 
+      }
+      else { 
+        noData.classList.add('hidden'); 
+        tableContainer.classList.remove('hidden'); // Show table when has data
+      }
+      
+      filtered.forEach(order => {
+        const tr = document.createElement('tr');
+        tr.className = 'bg-white even:bg-gray-50 hover:bg-blue-50 cursor-pointer transition-colors';
+        tr.onclick = (e) => { if(e.target.closest('button')) return; openLongTermEditModal(order); };
+        const status = getStatus(order);
+        
+        const productA = order['客訂商品A'] ? `[${order['客訂商品A']}]${order['A商品規格'] ? `(${order['A商品規格']})` : ''} ${order['A數量'] ? 'x' + order['A數量'] : ''}` : '';
+        const productB = order['客訂商品B'] ? `[${order['客訂商品B']}]${order['B商品規格'] ? `(${order['B商品規格']})` : ''} ${order['B數量'] ? 'x' + order['B數量'] : ''}` : '';
+
+        const formatMulti = (val) => {
+            if(!val) return '';
+            const parts = String(val).split(/[,;，\s]+/).filter(Boolean);
+            if(parts.length === 0) return '';
+            return parts.map(d => {
+                const dobj = new Date(d);
+                if(isNaN(dobj.getTime())) return d;
+                return `${pad(dobj.getMonth()+1)}/${pad(dobj.getDate())}`;
+            }).join(', ');
+        };
+
+        const formatDateMMDD = (val) => {
+            if(!val) return '';
+            const d = new Date(val);
+            if(isNaN(d.getTime())) return String(val).substring(0, 10);
+            return `${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+        }
+
+        let dateDisplay = '';
+        if(order['採購日期']) dateDisplay += `<div class="text-xs text-blue-600">採購: ${formatMulti(order['採購日期'])}</div>`;
+        if(order['到貨日期']) dateDisplay += `<div class="text-xs text-purple-600">到貨: ${formatMulti(order['到貨日期'])}</div>`;
+        
+        if(order['未接電話日期']) dateDisplay += `<div class="text-xs text-red-500">未接: ${formatMulti(order['未接電話日期'])}</div>`;
+        if(order['通知日期']) dateDisplay += `<div class="text-xs text-orange-600">通知: ${formatMulti(order['通知日期'])}</div>`;
+        
+        if(order['取走日期']) dateDisplay += `<div class="text-xs text-green-600">取走: ${formatMulti(order['取走日期'])}</div>`;
+        
+        let phoneDisplay = order['電話'] || order['連絡電話'] || '';
+        if (phoneDisplay) {
+             phoneDisplay = formatPhone(phoneDisplay);
+        }
+
+        const isPaid = isChecked(order['付清'] || order['paid']);
+        const paidDisplay = isPaid ? '<span class="text-green-600 font-bold">是</span>' : '<span class="text-gray-400">否</span>';
+        const createdDate = formatDateMMDD(order['建立日期'] || order['creationDate'] || order['建立時間']);
+        const updatedDate = formatDateMMDD(order['最後更新時間']);
+
+        tr.innerHTML = `
+          <td><span class="status-badge ${status.class}">${status.label}</span></td>
+          <td class="text-center"> <!-- FIXED: Center using text-center -->
+             <button type="button" class="btn bg-red-100 text-red-600 px-2 py-1 text-xs" onclick="deleteRow(${order['__row']})">刪除</button>
+          </td>
+          <td data-label="姓名" class="font-medium text-gray-900">${order['姓名'] || '未知'}</td>
+          <td data-label="手機號碼">${phoneDisplay}</td>
+          <td data-label="商品" class="mobile-full-width">
+             <div class="font-medium text-blue-900">${productA}</div>
+             ${productB ? `<div class="font-medium text-blue-900 mt-1">${productB}</div>` : ''}
+          </td>
+          <td data-label="進度" class="text-gray-500">${dateDisplay || '-'}</td>
+          <td data-label="付清">${paidDisplay}</td>
+          <td data-label="建立日期" class="text-xs text-gray-400">${createdDate}</td>
+          <td data-label="最後更新" class="text-xs text-gray-400">${updatedDate}</td>
+        `;
+
+        const delBtn = tr.querySelector('button[onclick^="deleteRow"]');
+        if(delBtn) {
+            delBtn.onclick = (e) => { e.stopPropagation(); if(confirm('刪除?')) deleteRow(order['__row']); };
+            delBtn.removeAttribute('onclick');
+        }
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function getStatus(order) {
+       if(order['取走日期']) return { key: '已取貨', label: '已取貨', class: 'closed' };
+       if(order['通知日期']) return { key: '已通知', label: '已通知', class: 'notified' };
+       if(order['未接電話日期']) return { key: '未接', label: '未接', class: 'missed' };
+       if(order['到貨日期']) return { key: '已到貨', label: '已到貨', class: 'arrived' };
+       if(order['採購日期']) return { key: '已採購', label: '已採購', class: 'purchase' };
+       return { key: '未處理', label: '未處理', class: 'pending' };
+    }
+    function formatPhone(rawVal){
+      if(rawVal===undefined || rawVal===null) return '';
+      const s = String(rawVal).trim();
+      if(s.startsWith('0')) return s;
+      if(/^\d{9}$/.test(s)) return '0'+s;
+      return s;
+    }
+    function formatDateShort(dateStr) {
+      if(!dateStr) return '';
+      const parts = String(dateStr).split(/[,;，\s]+/);
+      const last = parts[parts.length-1]; 
+      const d = new Date(last);
+      if(isNaN(d.getTime())) return `${pad(d.getMonth()+1)}/${pad(d.getDate())}`; // Fallback if parse fails but logic was tried
+      return `${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+    }
+
+    // Modal Helpers
+    const editModal = document.getElementById('editModalBackdrop');
+    const longTermEditModal = document.getElementById('longTerm_editModalBackdrop');
+    const blacklistEditModal = document.getElementById('blacklist_editModalBackdrop');
+    
+    function setInputDate(id, val) {
+       const el = document.getElementById(id);
+       if(!val) { el.value = ''; return; }
+       const parts = String(val).split(/[,;，\s]+/);
+       const d = new Date(parts[parts.length-1]);
+       if(!isNaN(d)) { el.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+    }
+
+    function openEditModal(order) {
+       document.getElementById('editRowIndex').value = order['__row'];
+       document.getElementById('editCustomerID').value = order['客號']||'';
+       document.getElementById('editCustomerName').value = order['姓名']||'';
+       document.getElementById('editPhone').value = order['電話']||order['連絡電話']||'';
+       document.getElementById('editProductAName').value = order['客訂商品A']||'';
+       document.getElementById('editProductASpec').value = order['A商品規格']||'';
+       document.getElementById('editProductAQty').value = order['A數量']||'';
+       document.getElementById('editProductBName').value = order['客訂商品B']||'';
+       document.getElementById('editProductBSpec').value = order['B商品規格']||'';
+       document.getElementById('editProductBQty').value = order['B數量']||'';
+       document.getElementById('editPaid').checked = (order['paid'] === '是' || order['paid'] === true || order['付清'] === '是');
+       document.getElementById('editNotes').value = order['備註']||'';
+       
+       // Populate LINE info
+       document.getElementById('editLineName').value = order['LINE名稱'] || '';
+       document.getElementById('editLineNotify').checked = isChecked(order['Line通知']);
+       
+       setInputDate('editPurchaseDate', order['採購日期']);
+       setInputDate('editArrivalDate', order['到貨日期']);
+       setInputDate('editPickupDate', order['取走日期']);
+       
+       // Populate Tags for normal edit modal
+       try {
+         const missed = parseMultiDateStringToArray(order['未接電話日期']);
+         const notify = parseMultiDateStringToArray(order['通知日期']);
+         editMissedCtrl.setItems(missed);
+         editNotifyCtrl.setItems(notify);
+       } catch(e) { console.warn(e); }
+
+       editModal.classList.remove('hidden');
+    }
+    
+    function openLongTermEditModal(order) {
+       document.getElementById('longTerm_editRowIndex').value = order['__row'];
+       document.getElementById('longTerm_editCustomerID').value = order['客號']||'';
+       document.getElementById('longTerm_editCustomerName').value = order['姓名']||'';
+       document.getElementById('longTerm_editPhone').value = order['電話']||order['連絡電話']||'';
+       document.getElementById('longTerm_editProductAName').value = order['客訂商品A']||'';
+       document.getElementById('longTerm_editProductASpec').value = order['A商品規格']||'';
+       document.getElementById('longTerm_editProductAQty').value = order['A數量']||'';
+       document.getElementById('longTerm_editProductBName').value = order['客訂商品B']||'';
+       document.getElementById('longTerm_editProductBSpec').value = order['B商品規格']||'';
+       document.getElementById('longTerm_editProductBQty').value = order['B數量']||'';
+       document.getElementById('longTerm_editPaid').checked = (order['paid'] === '是' || order['paid'] === true || order['付清'] === '是');
+       document.getElementById('longTerm_editStoreTransfer').value = order['分店調撥'] || '';
+       document.getElementById('longTerm_editNotes').value = order['備註'] || order['說明'] || '';
+       
+       try{
+        const purchase = parseMultiDateStringToArray(order['採購日期']);
+        const arrival = parseMultiDateStringToArray(order['到貨日期']);
+        const pickup = parseMultiDateStringToArray(order['取走日期']);
+        const missed = parseMultiDateStringToArray(order['未接電話日期']);
+        const notify = parseMultiDateStringToArray(order['通知日期']);
+        longTerm_editPurchaseCtrl.setItems(purchase);
+        longTerm_editArrivalCtrl.setItems(arrival);
+        longTerm_editPickupCtrl.setItems(pickup);
+        longTerm_editMissedCtrl.setItems(missed);
+        longTerm_editNotifyCtrl.setItems(notify);
+      }catch(e){ console.warn(e); }
+
+       longTermEditModal.classList.remove('hidden');
+    }
+    
+    function openBlacklistEditModal(row) {
+       document.getElementById('blacklist_editRowIndex').value = row['__row'];
+       const data = resolveBlacklistRowData(row);
+       document.getElementById('bl_edit_phone').value = data.phone;
+       document.getElementById('bl_edit_name').value = data.name;
+       document.getElementById('bl_edit_custID').value = data.id;
+       document.getElementById('bl_edit_reason').value = data.reason;
+       // ... note handling ...
+       // If backend returns '備註' or 'Note', map it
+       let note = row['備註'] || row['Note'] || '';
+       document.getElementById('bl_edit_notes').value = note;
+       
+       blacklistEditModal.classList.remove('hidden');
+    }
+
+    document.getElementById('closeEditModal').addEventListener('click', () => editModal.classList.add('hidden'));
+    document.getElementById('longTerm_closeEditModal').addEventListener('click', () => longTermEditModal.classList.add('hidden'));
+    document.getElementById('blacklist_closeEditModal').addEventListener('click', () => blacklistEditModal.classList.add('hidden'));
+    
+    // History Modal Logic
+    searchHistoryBtn.addEventListener('click', () => {
+        const store = storeSelect.value;
+        if (!store) {
+            alert('請先選擇分店才能查詢該店的歷史資料');
+            return;
+        }
+        // 清空前次查詢
+        historySearchInput.value = '';
+        historyTableBody.innerHTML = '';
+        historyTableHeaders.innerHTML = '';
+        historyNoData.classList.add('hidden');
+        
+        // 顯示提示文字 (選用)
+        historyNoData.textContent = '請輸入關鍵字進行搜尋';
+        historyNoData.classList.remove('hidden');
+        
+        historyModalBackdrop.classList.remove('hidden');
+    });
+    
+    closeHistoryModal.addEventListener('click', () => {
+        historyModalBackdrop.classList.add('hidden');
+    });
+    
+    historySearchBtn.addEventListener('click', performHistorySearch);
+    historySearchInput.addEventListener('keydown', (e) => { if(e.key==='Enter') performHistorySearch(); });
+    
+    async function performHistorySearch() {
+        const store = storeSelect.value;
+        const term = historySearchInput.value.trim(); // Keep original casing for display, convert for check
+        
+        if (!term) {
+            alert('請輸入搜尋關鍵字 (例如姓名、電話或商品名稱)');
+            return;
+        }
+        
+        historyLoader.classList.remove('hidden');
+        historyTableBody.innerHTML = '';
+        historyTableHeaders.innerHTML = ''; 
+        historyNoData.classList.add('hidden');
+        
+        try {
+            const url = `${SCRIPT_URL}?action=search_history&store=${encodeURIComponent(store)}&term=${encodeURIComponent(term)}`;
+            const resp = await fetch(url);
+            const json = await resp.json();
+            
+            if(json.result === 'success') {
+                let rows = json.rows || [];
+                const headers = json.headers || [];
+                
+                // === 前端二次過濾 (Double Check) ===
+                // 確保搜尋結果真的包含關鍵字 (排除系統自動產生的行號 __row 干擾)
+                if (term) {
+                    const lowerTerm = term.toLowerCase();
+                    rows = rows.filter(r => {
+                        return Object.entries(r).some(([key, val]) => {
+                            // 忽略行號，只搜尋實際資料
+                            if (key === '__row') return false;
+                            return String(val).toLowerCase().includes(lowerTerm);
+                        });
+                    });
+                }
+                
+                if(rows.length === 0) {
+                    historyNoData.textContent = '查無符合資料';
+                    historyNoData.classList.remove('hidden');
+                } else {
+                    renderHistoryTable(headers, rows);
+                }
+            } else {
+                alert('查詢失敗：' + json.error);
+            }
+        } catch(e) {
+            console.error(e);
+            alert('查詢錯誤');
+        } finally {
+            historyLoader.classList.add('hidden');
+        }
+    }
+    
+    function renderHistoryTable(headers, rows) {
+        historyTableHeaders.innerHTML = '';
+        
+        // 定義要顯示的欄位關鍵字
+        const displayCols = ['歸檔日期', '客號', '姓名', '電話', '連絡電話', '客訂商品A', '商品', '取走日期', '備註'];
+        
+        // 建立「欄位名稱」清單 (取代索引，避免錯位)
+        const colNames = [];
+        
+        headers.forEach(h => {
+            // 判斷此標題是否包含我們要顯示的關鍵字
+            const shouldShow = displayCols.some(k => h.includes(k)) || h.includes('Date') || h.includes('日期');
+            if(shouldShow) { 
+                const th = document.createElement('th');
+                th.textContent = h;
+                th.className = "sticky top-0 bg-gray-100 px-4 py-2 border-b font-bold whitespace-nowrap";
+                historyTableHeaders.appendChild(th);
+                colNames.push(h); // 記錄標題名稱
+            }
+        });
+        
+        // 渲染資料列
+        rows.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-gray-50 border-b";
+            
+            // 依據 colNames (標題名稱) 來抓取對應資料
+            colNames.forEach(key => {
+                const td = document.createElement('td');
+                td.className = "px-4 py-2 whitespace-nowrap text-sm";
+                
+                let val = row[key]; // 直接用 Key 取值，最準確
+                
+                // 日期簡單格式化
+                if(typeof val === 'string' && val.includes('T') && val.includes(':')) {
+                    val = val.split('T')[0]; 
+                }
+                
+                td.textContent = (val !== undefined && val !== null) ? val : '-';
+                tr.appendChild(td);
+            });
+            historyTableBody.appendChild(tr);
+        });
+    }
+
+    // Forms
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const store = storeSelect.value;
-      if (!store) {
-        alert('請先選擇店別！');
-        return;
-      }
-
-      submitButton.disabled = true;
-      submitButton.textContent = '送出中...';
-      hideMessage();
-
+      if(!store) { alert('請選擇店別'); return; }
+      submitButton.disabled = true; submitButton.textContent = '送出中...';
       try {
         const fd = new FormData(form);
         fd.append('action', 'append');
         fd.append('store', store);
+        await fetch(SCRIPT_URL, { method: 'POST', body: fd });
+        alert('訂單已送出'); form.reset(); fetchOrders();
+      } catch(err) { alert('失敗: '+err.message); } finally { submitButton.disabled = false; submitButton.textContent = '送出訂單'; }
+    });
+    
+    // 監聽電話輸入 (黑名單檢查)
+    const phoneInput = document.getElementById('phone');
+    const phoneWarning = document.getElementById('phone-warning');
+    phoneInput.addEventListener('input', function() {
+      const inputVal = this.value.trim().replace(/\D/g, ''); 
+      const inputNoZero = inputVal.replace(/^0+/, ''); 
+      phoneWarning.classList.add('hidden');
+      this.style.borderColor = ''; this.style.backgroundColor = '';
+      if (inputNoZero.length < 6) return;
+      
+      const found = allBlacklistData.find(row => {
+          const data = resolveBlacklistRowData(row);
+          const rawPhone = data.phone;
+          const rowPhoneNoZero = String(rawPhone).replace(/\D/g, '').replace(/^0+/, '');
+          return rowPhoneNoZero && rowPhoneNoZero === inputNoZero;
+      });
 
-        const resp = await fetch(SCRIPT_URL, { method: 'POST', body: fd });
-        const json = await resp.json();
-
-        if (json.result === 'success') {
-          showMessage('success', '<strong>成功：</strong> 訂單已送出。');
-          form.reset();
-          // Reset warning
-          phoneWarning.classList.add('hidden');
-          phoneInput.style.borderColor = '';
-          phoneInput.style.backgroundColor = '';
-          fetchOrderData();
-        } else {
-          throw new Error(json.error || '未知錯誤');
-        }
-      } catch (err) {
-        console.error(err);
-        showMessage('error', '<strong>送出失敗：</strong> ' + err.message);
-      } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = '送出訂單';
+      if (found) {
+           const data = resolveBlacklistRowData(found);
+           phoneWarning.classList.remove('hidden');
+           phoneWarning.textContent = `⚠️ 此號碼在黑名單中！(${data.reason})`;
+           this.style.borderColor = 'red'; this.style.backgroundColor = '#fef2f2';
       }
     });
 
-    storeSelect.addEventListener('change', async ()=>{ 
+    // Store Settings (Lock & Notify)
+    async function checkStoreSettings() {
       const store = storeSelect.value;
-      if(store) localStorage.setItem('selected_store', store);
-      else localStorage.removeItem('selected_store');
-      await updateStoreLockUI();
-      fetchOrderData();
-    });
-
-    storeLockCheckbox.addEventListener('change', async ()=> {
-      const store = storeSelect.value;
-      const locked = storeLockCheckbox.checked;
-      if(!store){ showTopMessage('請先選擇店別', true); storeLockCheckbox.checked = !locked; return; }
-      const ok = await setStoreLockValue(store, locked);
-      if(!ok){
-        showTopMessage('設定店別鎖定失敗', true);
-        storeLockCheckbox.checked = !locked;
+      if(!store) {
+        // Reset controls
+        storeLockCheckbox.checked = false;
+        notifyToggle.checked = false;
+        notifyToggle.disabled = true; // Disable visually
         return;
       }
+      
+      // === 修正：讀取設定時使用店名而非代碼 ===
+      const storeName = getSelectedStoreName();
+      if(!storeName) return;
+
+      notifyToggle.disabled = false; // Enable interaction
+      
+      try {
+        // 傳送店名而非 value
+        const resp = await fetch(`${SCRIPT_URL}?action=get_store_settings&store=${encodeURIComponent(storeName)}`);
+        const json = await resp.json();
+        if (json.result === 'success') {
+          // 只在非使用者操作時更新 (這裡其實是讀取伺服器端的設定狀態)
+          // 注意：如果 storeLockCheckbox 剛剛被使用者點擊，這裡可能會覆蓋狀態，但通常 fetchStores -> checkStoreSettings 是初始化流程
+          storeLockCheckbox.checked = (json.settings.locked === '1');
+          notifyToggle.checked = (json.settings.notify_enabled === '1');
+          
+          if(json.settings.locked === '1') {
+             storeSelect.classList.add('select-disabled');
+             storeSelect.disabled = true;
+             showTopMessage('店別已鎖定', false);
+          } else {
+             storeSelect.classList.remove('select-disabled');
+             storeSelect.disabled = false;
+             showTopMessage('', false);
+          }
+        }
+      } catch(err) { console.warn('checkStoreSettings error', err); }
+    }
+
+    storeLockCheckbox.addEventListener('change', async () => {
+      const store = storeSelect.value;
+      const locked = storeLockCheckbox.checked;
+      
+      if(!store){ 
+          showTopMessage('請先選擇店別', true); 
+          storeLockCheckbox.checked = false; 
+          return; 
+      }
+
       if(locked){
         storeSelect.classList.add('select-disabled');
         storeSelect.disabled = true;
@@ -1530,176 +1590,269 @@
         storeSelect.disabled = false;
       }
       showTopMessage(locked ? '店別已鎖定' : '店別已解鎖', false);
-    });
 
-    refreshStoresBtn.addEventListener('click', async (e)=>{ e.preventDefault(); await refreshStoresAndCreateMissing(); });
-
-    searchButton.addEventListener('click', filterAndDisplayData);
-    searchInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); filterAndDisplayData(); } });
-    refreshButton.addEventListener('click', ()=>{ searchInput.value=''; hideDataMessage(); fetchOrderData(); });
-
-    longTerm_searchButton.addEventListener('click', filterAndDisplayLongTermData);
-    longTerm_searchInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); filterAndDisplayLongTermData(); } });
-    longTerm_refreshButton.addEventListener('click', ()=>{ longTerm_searchInput.value=''; hideDataMessage(true); fetchOrderData(); });
-
-    // 新增：清除逾期已取按鈕邏輯 (增強版 + 分店防呆提示)
-    if (clearOverdueBtn) {
-      clearOverdueBtn.addEventListener('click', async () => {
-        try {
-          if (allOrders.length === 0) { alert('目前沒有客訂資料。'); return; }
-          
-          const now = new Date();
-          const ONE_DAY = 24 * 60 * 60 * 1000;
-          
-          // 找出符合條件的訂單
-          const toDelete = allOrders.filter(order => {
-            // 嘗試取得取走日期（容錯：嘗試兩種常見欄位名稱）
-            const pickupDateStr = order['取走日期'] || order['取貨日期'];
-            if (!pickupDateStr || !String(pickupDateStr).trim()) return false;
-            
-            // 解析日期 (多重日期只取第一個)
-            const firstDate = parseMultiDateStringToArray(pickupDateStr)[0];
-            if (!firstDate) return false;
-            
-            const pickupDate = new Date(firstDate);
-            if (isNaN(pickupDate.getTime())) return false;
-            
-            // 計算天數差 (今天 - 取走日期)
-            const diffTime = now - pickupDate;
-            const diffDays = diffTime / ONE_DAY;
-            
-            return diffDays > 5;
-          });
-
-          if (toDelete.length === 0) {
-            alert('沒有發現取貨超過 5 天的資料。');
-            return;
-          }
-
-          // 取得目前選單的分店名稱，增加提示明確性
-          const storeName = storeSelect.options[storeSelect.selectedIndex]?.text || '目前分店';
-
-          if (!confirm(`確定刪除 ${storeName} 中，「取走日期」距離今天超過 5 天的資料嗎?`)) {
-            return;
-          }
-
-          // 開始刪除流程
-          clearOverdueBtn.disabled = true;
-          clearOverdueBtn.textContent = '刪除中...';
-          
-          // 為了避免刪除後列號移位，必須依 row index 由大到小排序
-          toDelete.sort((a, b) => b['__row'] - a['__row']);
-          
-          let successCount = 0;
-          let failCount = 0;
-
-          for (let i = 0; i < toDelete.length; i++) {
-            const item = toDelete[i];
-            const progressMsg = `正在刪除第 ${i+1}/${toDelete.length} 筆...`;
-            showTopMessage(progressMsg); // 用上方訊息列顯示進度
-            
-            try {
-              await deleteRowSilent(item['__row']);
-              successCount++;
-            } catch(e) {
-              console.error('刪除失敗 row:', item['__row'], e);
-              failCount++;
-            }
-          }
-          
-          showTopMessage(''); // 清空進度
-          alert(`刪除完成！\n成功：${successCount} 筆\n失敗：${failCount} 筆`);
-          
-          // 重新整理資料
-          fetchOrderData();
-          
-        } catch(e) {
-          console.error(e);
-          alert('執行過程中發生錯誤：' + e.message);
-        } finally {
-          clearOverdueBtn.disabled = false;
-          clearOverdueBtn.textContent = '清除逾期已取';
-        }
-      });
-    } else {
-      console.error("找不到按鈕 clearOverdueBtn");
-    }
-
-    blacklistSearchButton.addEventListener('click', filterBlacklist);
-    blacklistSearchInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') filterBlacklist(); });
-    blacklistRefreshButton.addEventListener('click', fetchBlacklistData);
-
-    blacklistAddButton.addEventListener('click', openBlacklistAddModal);
-    blacklistCloseAddModal.addEventListener('click', closeBlacklistAddModal);
-    blacklistCancelAdd.addEventListener('click', closeBlacklistAddModal);
-
-    blacklistAddForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = blacklistAddForm.querySelector('button[type="submit"]');
-      btn.disabled = true;
-      try {
-        const fd = new FormData(blacklistAddForm);
-        fd.append('action', 'add_blacklist');
-        const resp = await fetch(SCRIPT_URL, { method: 'POST', body: fd });
-        const json = await resp.json();
-        if (json.result === 'success') { alert('黑名單新增成功！'); closeBlacklistAddModal(); blacklistAddForm.reset(); fetchBlacklistData(); } 
-        else { alert('新增失敗：' + (json.error || '未知錯誤')); }
-      } catch (err) { console.error(err); alert('新增失敗，請檢查網路。'); } finally { btn.disabled = false; }
-    });
-
-    // === 黑名單編輯/刪除 JS (新增) ===
-    const blEditModal = document.getElementById('blacklist_editModalBackdrop');
-    const blEditForm = document.getElementById('blacklist_editForm');
-    
-    document.getElementById('blacklist_closeEditModal').addEventListener('click', () => blEditModal.classList.add('hidden'));
-    document.getElementById('blacklist_cancelEdit').addEventListener('click', () => blEditModal.classList.add('hidden'));
-
-    function openBlacklistEditModal(row) {
-      document.getElementById('blacklist_editRowIndex').value = row['__row'];
-      document.getElementById('bl_edit_custID').value = row['客號'] || '';
-      document.getElementById('bl_edit_name').value = row['姓名'] || '';
-      document.getElementById('bl_edit_phone').value = row['電話'] || row['連絡電話'] || '';
-      document.getElementById('bl_edit_store').value = row['店別'] || '';
-      document.getElementById('bl_edit_reason').value = row['原因'] || '';
-      document.getElementById('bl_edit_date').value = toDateOnly(row['日期'] || '');
-      document.getElementById('bl_edit_notes').value = row['備註'] || '';
-      blEditModal.classList.remove('hidden');
-    }
-
-    blEditForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = blEditForm.querySelector('button[type="submit"]');
-      btn.disabled = true;
-      btn.textContent = '儲存中...';
-      try {
-        const fd = new FormData(blEditForm);
-        fd.append('action', 'update_blacklist');
-        
-        const resp = await fetch(SCRIPT_URL, { method: 'POST', body: fd });
-        const json = await resp.json();
-        
-        if (json.result === 'success') {
-          alert('黑名單更新成功！');
-          blEditModal.classList.add('hidden');
-          fetchBlacklistData(); 
+      // === 修正：鎖定時傳送店名 ===
+      const storeName = getSelectedStoreName();
+      const ok = await setStoreLockValue(locked);
+      
+      if(!ok){
+        showTopMessage('設定店別鎖定失敗，已還原狀態', true);
+        storeLockCheckbox.checked = !locked;
+        if(!locked){ 
+            storeSelect.classList.add('select-disabled');
+            storeSelect.disabled = true;
         } else {
-          alert('更新失敗：' + (json.error || '未知錯誤'));
+            storeSelect.classList.remove('select-disabled');
+            storeSelect.disabled = false;
         }
-      } catch (err) {
-        console.error(err);
-        alert('更新失敗，請檢查網路。');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '儲存變更';
       }
     });
 
+    // Notify Toggle Listener
+    notifyToggle.addEventListener('change', async (e) => {
+        const store = storeSelect.value;
+        // 防呆：未選取店別
+        if (!store) {
+            e.preventDefault();
+            notifyToggle.checked = false; // 強制關閉
+            alert('未選取店別無法開啟逾期Line通知');
+            return;
+        }
+
+        const isEnabled = notifyToggle.checked;
+        const msg = isEnabled ? '開啟' : '關閉';
+        
+        // Optimistic update done by checkbox itself, now verify with backend
+        try {
+            // === 修正：通知設定傳送店名 ===
+            const storeName = getSelectedStoreName();
+            
+            const params = new URLSearchParams();
+            params.append('action', 'set_notify_status');
+            params.append('store', storeName); // 使用店名
+            params.append('enabled', isEnabled ? '1' : '0');
+            
+            await fetch(SCRIPT_URL, { method: 'POST', body: params });
+            showTopMessage(`已${msg}逾期通知`, false);
+        } catch (err) {
+            alert('設定失敗，請檢查網路連線');
+            notifyToggle.checked = !isEnabled; // Revert
+        }
+    });
+    
+    // === 修正：重整分店按鈕語法錯誤 ===
+    document.getElementById('refreshStoresBtn').addEventListener('click', async()=>{ 
+        const fd = new FormData();
+        fd.append('action','create_store_sheets');
+        await fetch(SCRIPT_URL,{method:'POST',body:fd}); 
+        await fetchStores(); 
+    });
+    
+    // Backup Button Listener
+    document.getElementById('backupBtn').addEventListener('click', () => {
+        const store = storeSelect.value;
+        const storeName = getSelectedStoreName(); // 使用正確的店名變數
+        
+        let htmlContent = '';
+        if (store) {
+            htmlContent = `
+              <p class="font-bold text-gray-800 mb-2">確定要備份 [${storeName}] 的資料嗎？</p>
+              <ul class="list-disc pl-5 text-sm text-gray-600 space-y-1">
+                <li>系統將會建立一個獨立的備份檔案。</li>
+                <li>檔案名稱將包含當前日期時間。</li>
+                <li>這不會影響目前的運作。</li>
+              </ul>
+            `;
+        } else {
+            htmlContent = `
+              <p class="font-bold text-gray-800 mb-2">您尚未選擇分店，系統將執行【完整備份】。</p>
+              <ul class="list-disc pl-5 text-sm text-gray-600 space-y-1">
+                <li>備份內容包含所有分店訂單、黑名單與設定。</li>
+                <li>檔案較大，請耐心等候。</li>
+              </ul>
+            `;
+        }
+        
+        backupModalContent.innerHTML = htmlContent;
+        backupModalBackdrop.classList.remove('hidden');
+    });
+
+    closeBackupModal.addEventListener('click', () => backupModalBackdrop.classList.add('hidden'));
+    cancelBackupBtn.addEventListener('click', () => backupModalBackdrop.classList.add('hidden'));
+    
+    confirmBackupBtn.addEventListener('click', async () => {
+        confirmBackupBtn.disabled = true;
+        confirmBackupBtn.textContent = '備份中...';
+        
+        const store = storeSelect.value;
+        const storeName = getSelectedStoreName();
+        
+        try {
+            // === 修正：備份功能改用 URLSearchParams 確保參數正確傳遞 ===
+            const params = new URLSearchParams();
+            params.append('action', 'backup_database');
+            // 修正：備份指定分店時，傳送 Store Name 而非 Code
+            if(store) params.append('store', storeName);
+            
+            const resp = await fetch(SCRIPT_URL, { method: 'POST', body: params });
+            const json = await resp.json();
+            
+            if (json.result === 'success') {
+                alert(json.message || '備份成功！');
+                backupModalBackdrop.classList.add('hidden');
+            } else {
+                alert('備份失敗：' + (json.error || '未知錯誤'));
+            }
+        } catch (e) {
+            alert('備份請求失敗：' + e.message);
+        } finally {
+            confirmBackupBtn.disabled = false;
+            confirmBackupBtn.textContent = '確認備份';
+        }
+    });
+
+    // Clear Overdue Listener (Manual Trigger)
+    document.getElementById('clearOverdueBtn').addEventListener('click', async () => {
+        const store = storeSelect.value;
+        if (!store) {
+            alert('請先選擇要整理的分店！');
+            return;
+        }
+        
+        if (!confirm('確定要整理此分店的過期資料嗎？\n\n規則：\n1. 已取走且超過 5 天的資料 -> 移至歷史資料庫並刪除。\n2. 未完成的訂單不會被刪除。')) return;
+        
+        const btn = document.getElementById('clearOverdueBtn');
+        btn.disabled = true;
+        btn.textContent = '整理中...';
+        
+        try {
+            // === 修正：清除逾期也改送店名，確保後端能抓到正確工作表 ===
+            const storeName = getSelectedStoreName();
+            const fd = new FormData();
+            fd.append('action', 'clean_overdue');
+            fd.append('store', storeName); 
+            
+            const resp = await fetch(SCRIPT_URL, { method: 'POST', body: fd });
+            const json = await resp.json();
+            if (json.result === 'success') {
+                alert(json.message);
+                fetchOrders(); // Refresh table
+            } else {
+                alert('整理失敗：' + json.error);
+            }
+        } catch(e) {
+            alert('請求失敗：' + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '清除逾期';
+        }
+    });
+
+    // Blacklist
+    async function fetchBlacklistData() {
+      document.getElementById('blacklist_dataLoader').classList.remove('hidden');
+      try {
+        const resp = await fetch(`${SCRIPT_URL}?action=blacklist`);
+        const json = await resp.json();
+        allBlacklistData = json.rows || [];
+        renderBlacklistTable();
+      } catch(e) { console.error(e); } finally { document.getElementById('blacklist_dataLoader').classList.add('hidden'); }
+    }
+    
+    // Helper to resolve blacklist row data flexibly
+    function resolveBlacklistRowData(row) {
+      const keys = Object.keys(row);
+      const findKey = (candidates) => {
+        for (const c of candidates) {
+          if (row[c] !== undefined) return c;
+        }
+        for (const c of candidates) {
+          const found = keys.find(k => k.includes(c));
+          if (found) return found;
+        }
+        return null;
+      };
+
+      const idKey = findKey(['客號', 'Cust', 'ID', '編號']);
+      const nameKey = findKey(['姓名', 'Name', '顧客']);
+      const phoneKey = findKey(['電話', 'Phone', 'Mobile', '手機', '連絡']);
+      const reasonKey = findKey(['原因', 'Reason', '事由', '備註', '說明']);
+      const dateKey = findKey(['日期', 'Date', 'Time']);
+      const storeKey = findKey(['店別', 'Store', '分店', 'StoreName']); 
+
+      return {
+        id: idKey ? row[idKey] : '-',
+        name: nameKey ? row[nameKey] : '未知',
+        phone: phoneKey ? row[phoneKey] : '',
+        reason: reasonKey ? row[reasonKey] : '',
+        date: dateKey ? row[dateKey] : '',
+        store: storeKey ? row[storeKey] : ''
+      };
+    }
+    
+    function renderBlacklistTable() {
+      const tbody = document.getElementById('blacklist_data-table-body');
+      const noData = document.getElementById('blacklist_noDataText');
+      const tableContainer = document.getElementById('blacklist_dataTableContainer');
+      tbody.innerHTML = '';
+      const term = document.getElementById('blacklist_searchInput').value.trim().toLowerCase();
+      
+      const filtered = allBlacklistData.filter(row => {
+         if(!term) return true;
+         // Search all values in row
+         return Object.values(row).some(val => String(val).toLowerCase().includes(term));
+      });
+      
+      if(filtered.length === 0) { 
+        noData.classList.remove('hidden'); 
+        tableContainer.classList.add('hidden'); 
+        return; 
+      }
+      else { 
+        noData.classList.add('hidden'); 
+        tableContainer.classList.remove('hidden'); 
+      }
+      
+      filtered.forEach(row => {
+         const tr = document.createElement('tr');
+         tr.className = 'hover:bg-red-50 cursor-pointer';
+         tr.onclick = (e) => { if(e.target.closest('button')) return; openBlacklistEditModal(row); };
+         
+         const data = resolveBlacklistRowData(row);
+         const dateVal = formatFieldValueIfDate('日期', data.date);
+         const phoneVal = formatPhone(data.phone);
+
+         // === 修正：轉換店別代碼為中文店名 ===
+         let displayStoreName = data.store;
+         if (allStoresCache && allStoresCache.length > 0) {
+             const match = allStoresCache.find(s => s.code === data.store);
+             if (match && match.name) displayStoreName = match.name;
+         }
+
+         tr.innerHTML = `
+           <td class="status-badge missed">黑名單</td>
+           <td class="text-center"> <!-- FIXED: Center delete button -->
+               <button type="button" class="btn bg-red-100 text-red-600 px-2 py-1 text-xs" onclick="event.stopPropagation(); deleteBlacklistRow(${row['__row']})">刪除</button>
+           </td>
+           <td data-label="客號">${data.id}</td>
+           <td data-label="姓名">${data.name}</td>
+           <td data-label="電話">${phoneVal}</td>
+           <td data-label="店別">${displayStoreName}</td>
+           <td data-label="原因" class="text-red-600">${data.reason}</td>
+           <td data-label="日期">${dateVal}</td>
+         `;
+         
+         tbody.appendChild(tr);
+      });
+    }
+    
     async function deleteBlacklistRow(rowIndex) {
       if (!confirm('確定要刪除這筆黑名單資料嗎？此動作無法復原。')) return;
       try {
         const fd = new FormData();
-        fd.append('action', 'delete_blacklist');
+        fd.append('action', 'delete');
         fd.append('row', rowIndex);
+        fd.append('targetSheet', 'blacklist'); // Ensure 'blacklist' matches backend expectation
         const resp = await fetch(SCRIPT_URL, { method: 'POST', body: fd });
         const json = await resp.json();
         if (json.result === 'success') {
@@ -1713,169 +1866,94 @@
       }
     }
 
-    // --- Order Edit Forms (NEWLY ADDED) ---
-    // Handle submission for the normal edit form
-    document.getElementById('editForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const store = storeSelect.value;
-      if (!store) { alert('無法確認店別，請重新整理頁面'); return; }
-      
-      const btn = e.target.querySelector('button[type="submit"]');
-      btn.disabled = true; 
-      btn.textContent = '儲存中...';
+    document.getElementById('blacklist_searchButton').addEventListener('click', renderBlacklistTable);
+    document.getElementById('blacklist_searchInput').addEventListener('input', renderBlacklistTable);
+    document.getElementById('longTerm_searchButton').addEventListener('click', renderLongTermTable);
+    document.getElementById('longTerm_searchInput').addEventListener('input', renderLongTermTable);
+    document.getElementById('searchButton').addEventListener('click', renderTable);
+    document.getElementById('searchInput').addEventListener('input', renderTable);
 
-      try {
-        const fd = new FormData(e.target);
-        fd.append('action', 'update');
-        fd.append('store', store);
-
-        const resp = await fetch(SCRIPT_URL, { method: 'POST', body: fd });
-        const json = await resp.json();
-
-        if (json.result === 'success') {
-          alert('更新成功！');
-          editModalBackdrop.classList.add('hidden');
-          fetchOrderData();
-        } else {
-          alert('更新失敗：' + (json.error || '未知錯誤'));
+    document.getElementById('blacklist_addButton').addEventListener('click', () => { 
+        const currentStoreVal = storeSelect.value;
+        if(currentStoreVal) {
+            // 修改：抓取選單文字(店名)而非值(店號)
+            const currentStoreName = storeSelect.options[storeSelect.selectedIndex].text;
+            document.getElementById('blacklist_addStore').value = currentStoreName;
         }
-      } catch (err) {
-        console.error(err);
-        alert('更新失敗，請檢查網路。');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '儲存變更';
-      }
+        document.getElementById('blacklist_addModalBackdrop').classList.remove('hidden'); 
     });
+    document.getElementById('blacklist_closeAddModal').addEventListener('click', () => document.getElementById('blacklist_addModalBackdrop').classList.add('hidden'));
+    
+    document.getElementById('blacklist_addForm').addEventListener('submit', async(e)=>{
+       e.preventDefault();
+       try { 
+         const fd = new FormData(e.target); 
+         fd.append('action', 'add_blacklist'); 
+         fd.append('targetSheet', 'blacklist');
+         
+         // 取得當前日期與店別
+         const today = todayLocalForInput();
+         const currentStore = document.getElementById('blacklist_addStore').value;
 
-    // Handle submission for the long-term edit form
-    document.getElementById('longTerm_editForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const store = storeSelect.value;
-      if (!store) { alert('無法確認店別，請重新整理頁面'); return; }
-      
-      const btn = e.target.querySelector('button[type="submit"]');
-      btn.disabled = true; 
-      btn.textContent = '儲存中...';
-
-      try {
-        const fd = new FormData(e.target);
-        fd.append('action', 'update');
-        fd.append('store', store);
-
-        const resp = await fetch(SCRIPT_URL, { method: 'POST', body: fd });
-        const json = await resp.json();
-
-        if (json.result === 'success') {
-          alert('更新成功！');
-          longTerm_editModalBackdrop.classList.add('hidden');
-          fetchOrderData();
-        } else {
-          alert('更新失敗：' + (json.error || '未知錯誤'));
-        }
-      } catch (err) {
-        console.error(err);
-        alert('更新失敗，請檢查網路。');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '儲存變更';
-      }
-    });
-
-    // date target buttons
-    document.querySelectorAll('[data-target]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const targetId = btn.dataset.target;
-        const el = document.getElementById(targetId);
-        if(!el) return;
-        if(el.type === 'date'){
-          el.value = todayLocalForInput();
-        } else {
-          el.value = todayLocalForSheet();
-        }
-      });
-    });
-
-    // window load
-    window.addEventListener('load', async ()=>{
-      const stores = await fetchStores();
-      const prev = localStorage.getItem('selected_store');
-      if(prev){ const found = Array.from(storeSelect.options).some(o=>o.value===prev); if(found) storeSelect.value = prev; }
-      await updateStoreLockUI();
-      fetchOrderData();
-      fetchBlacklistData();
+         // --- 強制寫入多種常見欄位名稱，確保後端能抓到其中一個 ---
+         // 日期相關
+         fd.append('日期', today);
+         fd.append('Date', today);
+         fd.append('建立日期', today);
+         fd.append('時間', today);
+         
+         // 店別相關
+         if(currentStore) {
+             fd.append('店別', currentStore);
+             fd.append('分店', currentStore);
+             fd.append('Store', currentStore);
+             fd.append('StoreName', currentStore);
+         }
+         
+         await fetch(SCRIPT_URL, {method:'POST', body:fd}); 
+         alert('新增成功'); 
+         e.target.reset(); 
+         document.getElementById('blacklist_addModalBackdrop').classList.add('hidden'); 
+         fetchBlacklistData(); 
+       } catch(e) { alert('失敗: ' + e.message); }
     });
     
-    // Re-attach close modal listeners (important!)
-    closeEditModal.addEventListener('click', closeModal);
-    cancelEdit.addEventListener('click', (e)=>{ e.preventDefault(); closeModal(); });
-    longTerm_closeEditModal.addEventListener('click', longTerm_closeModal);
-    longTerm_cancelEdit.addEventListener('click', (e)=>{ e.preventDefault(); longTerm_closeModal(); });
-
-    // modal logic
-    function openEditModal(sheetRow){
-      const order = allOrders.find(o => String(o['__row']) === String(sheetRow));
-      if(!order){ console.error('找不到此筆資料'); return; }
-      document.getElementById('editRowIndex').value = order['__row'];
-      document.getElementById('editLongTermHidden').value = isChecked(order['固定/長期客訂']) ? '是' : '否';
-      document.getElementById('editCustomerID').value = order['客號'] || order['Cust ID'] || '';
-      document.getElementById('editCustomerName').value = order['姓名'] || '';
-      document.getElementById('editPhone').value = formatPhone(order['連絡電話'] || '');
-      document.getElementById('editProductAName').value = order['客訂商品A'] || '';
-      document.getElementById('editProductASpec').value = order['A商品規格'] || '';
-      document.getElementById('editProductAQty').value = order['A數量'] || '';
-      document.getElementById('editProductBName').value = order['客訂商品B'] || '';
-      document.getElementById('editProductBSpec').value = order['B商品規格'] || '';
-      document.getElementById('editProductBQty').value = order['B數量'] || '';
-      const paidVal = order['付清'] !== undefined ? order['付清'] : order['paid'];
-      document.getElementById('editPaid').checked = isChecked(paidVal);
-      document.getElementById('editPurchaseDate').value = toDateOnly(order['採購日期'] || '');
-      document.getElementById('editArrivalDate').value = toDateOnly(order['到貨日期'] || '');
-      document.getElementById('editPickupDate').value = toDateOnly(order['取走日期'] || '');
-      document.getElementById('editStoreTransfer').value = order['分店調撥'] || '';
-      document.getElementById('editNotes').value = order['備註'] || order['說明'] || '';
-      try{
-        const missed = parseMultiDateStringToArray(order['未接電話日期']);
-        const notify = parseMultiDateStringToArray(order['通知日期']);
-        editMissedCtrl.setItems(missed);
-        editNotifyCtrl.setItems(notify);
-      }catch(e){ console.warn(e); }
-      editModalBackdrop.classList.remove('hidden');
-    }
-
-    function openLongTermEditModal(sheetRow){
-      const order = allLongTermOrders.find(o => String(o['__row']) === String(sheetRow));
-      if(!order){ console.error('找不到此筆資料'); return; }
-      document.getElementById('longTerm_editRowIndex').value = order['__row'];
-      document.getElementById('longTerm_editLongTermHidden').value = isChecked(order['固定/長期客訂']) ? '是' : '否';
-      document.getElementById('longTerm_editCustomerID').value = order['客號'] || order['Cust ID'] || '';
-      document.getElementById('longTerm_editCustomerName').value = order['姓名'] || '';
-      document.getElementById('longTerm_editPhone').value = formatPhone(order['連絡電話'] || '');
-      document.getElementById('longTerm_editProductAName').value = order['客訂商品A'] || '';
-      document.getElementById('longTerm_editProductASpec').value = order['A商品規格'] || '';
-      document.getElementById('longTerm_editProductAQty').value = order['A數量'] || '';
-      document.getElementById('longTerm_editProductBName').value = order['客訂商品B'] || '';
-      document.getElementById('longTerm_editProductBSpec').value = order['B商品規格'] || '';
-      document.getElementById('longTerm_editProductBQty').value = order['B數量'] || '';
-      const paidVal = order['付清'] !== undefined ? order['付清'] : order['paid'];
-      document.getElementById('longTerm_editPaid').checked = isChecked(paidVal);
-      document.getElementById('longTerm_editStoreTransfer').value = order['分店調撥'] || '';
-      document.getElementById('longTerm_editNotes').value = order['備註'] || order['說明'] || '';
-      try{
-        const purchase = parseMultiDateStringToArray(order['採購日期']);
-        const arrival = parseMultiDateStringToArray(order['到貨日期']);
-        const pickup = parseMultiDateStringToArray(order['取走日期']);
-        const missed = parseMultiDateStringToArray(order['未接電話日期']);
-        const notify = parseMultiDateStringToArray(order['通知日期']);
-        longTerm_editPurchaseCtrl.setItems(purchase);
-        longTerm_editArrivalCtrl.setItems(arrival);
-        longTerm_editPickupCtrl.setItems(pickup);
-        longTerm_editMissedCtrl.setItems(missed);
-        longTerm_editNotifyCtrl.setItems(notify);
-      }catch(e){ console.warn(e); }
-      longTerm_editModalBackdrop.classList.remove('hidden');
-    }
+    // Modal Submits
+    document.getElementById('editForm').addEventListener('submit', async(e)=>{ e.preventDefault(); const fd=new FormData(e.target); fd.append('action','update'); fd.append('store',storeSelect.value); await fetch(SCRIPT_URL,{method:'POST',body:fd}); alert('更新成功'); editModal.classList.add('hidden'); fetchOrders(); });
+    document.getElementById('longTerm_editForm').addEventListener('submit', async(e)=>{ e.preventDefault(); const fd=new FormData(e.target); fd.append('action','update'); fd.append('store',storeSelect.value); await fetch(SCRIPT_URL,{method:'POST',body:fd}); alert('更新成功'); longTermEditModal.classList.add('hidden'); fetchOrders(); });
+    document.getElementById('blacklist_editForm').addEventListener('submit', async(e)=>{ e.preventDefault(); const fd=new FormData(e.target); fd.append('action','update'); fd.append('targetSheet','blacklist'); await fetch(SCRIPT_URL,{method:'POST',body:fd}); alert('更新成功'); blacklistEditModal.classList.add('hidden'); fetchBlacklistData(); });
     
+    // Deletes
+    document.getElementById('deleteEdit').addEventListener('click', ()=>{ if(confirm('刪除?')) deleteRow(document.getElementById('editRowIndex').value); });
+    document.getElementById('longTerm_deleteEdit').addEventListener('click', ()=>{ if(confirm('刪除?')) deleteRow(document.getElementById('longTerm_editRowIndex').value); });
+    async function deleteRow(idx) { const fd=new FormData(); fd.append('action','delete'); fd.append('row',idx); fd.append('store',storeSelect.value); await fetch(SCRIPT_URL,{method:'POST',body:fd}); alert('已刪除'); editModal.classList.add('hidden'); longTermEditModal.classList.add('hidden'); fetchOrders(); }
+
+    document.querySelectorAll('[data-target]').forEach(btn => {
+      btn.addEventListener('click', () => { document.getElementById(btn.dataset.target).value = todayLocalForInput(); });
+    });
+    
+    // Cancel buttons for Blacklist modals
+    document.getElementById('blacklist_cancelAdd').addEventListener('click', () => { document.getElementById('blacklist_addModalBackdrop').classList.add('hidden'); });
+    document.getElementById('blacklist_cancelEdit').addEventListener('click', () => { document.getElementById('blacklist_editModalBackdrop').classList.add('hidden'); });
+
+    async function setStoreLockValue(locked){
+      if(!store) return;
+      try{
+        // === 修正：鎖定功能改用 URLSearchParams 確保參數正確傳遞 ===
+        const params = new URLSearchParams();
+        params.append('action', 'set_store_lock');
+        params.append('store', getSelectedStoreName());
+        params.append('locked', locked ? '1' : '0');
+        
+        const resp = await fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            body: params 
+        });
+        const json = await resp.json();
+        return json && json.result === 'success';
+      }catch(err){ console.warn('setStoreLockValue error', err); return false; }
+    }
+
   </script>
 </body>
 </html>
