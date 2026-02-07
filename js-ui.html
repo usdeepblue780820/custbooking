@@ -1,0 +1,502 @@
+<script>
+    // Tag Helpers
+    function setupTagControls(addBtn, stampBtn, inputEl, tagsContainer, hiddenInput){
+      let items = [];
+      addBtn && addBtn.addEventListener('click', ()=>{
+        const v = inputEl.value;
+        if(v && !items.includes(v)){ items.push(v); items.sort(); inputEl.value=''; render(); }
+      });
+      stampBtn && stampBtn.addEventListener('click', ()=>{
+        const v = todayLocalForInput();
+        if(!items.includes(v)){ items.push(v); items.sort(); render(); }
+      });
+      function render(){
+        tagsContainer.innerHTML = '';
+        items.forEach(d => {
+           const div = document.createElement('div');
+           div.className = 'tag';
+           div.innerHTML = `<span>${d}</span><span class="remove" data-date="${d}">&times;</span>`;
+           tagsContainer.appendChild(div);
+        });
+        hiddenInput.value = items.join(', ');
+      }
+      tagsContainer.addEventListener('click', (e)=>{
+        const removeBtn = e.target.closest('.remove');
+        if(removeBtn){
+          const d = removeBtn.dataset.date;
+          items = items.filter(x=>x!==d); render();
+        }
+      });
+      return { setItems(arr){ items = (arr||[]).filter(Boolean); items.sort(); render(); }, getItems(){ return items.slice(); } };
+    }
+
+    // Accordion Logic
+    function toggleAccordion(btn, content, icon) {
+      btn.addEventListener('click', () => {
+        const isOpen = content.classList.contains('open');
+        content.classList.toggle('open');
+        icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+      });
+    }
+
+    // Tabs
+    function renderTabs() {
+      const STATUS_TABS = [
+        { key: 'all', label: '全部' },
+        { key: '未處理', label: '未處理' },
+        { key: '已採購', label: '已採購' },
+        { key: '已到貨', label: '已到貨' },
+        { key: '已通知', label: '已通知' },
+        { key: '未接', label: '未接' },
+        { key: '已取貨', label: '已取貨' }
+      ];
+      const container = document.getElementById('statusTabs');
+      container.innerHTML = STATUS_TABS.map(tab => `
+        <button class="tab-btn ${tab.key === currentFilter ? 'active' : ''}" 
+                onclick="setFilter('${tab.key}')">
+          ${tab.label}
+        </button>
+      `).join('');
+    }
+
+    function updateStoreDisplay() {
+      const storeSelect = document.getElementById('storeSelect');
+      const currentStoreBadge = document.getElementById('currentStoreBadge');
+      const text = storeSelect.options[storeSelect.selectedIndex]?.text;
+      if(text && storeSelect.value) { currentStoreBadge.textContent = text; currentStoreBadge.classList.remove('hidden'); }
+      else { currentStoreBadge.classList.add('hidden'); }
+    }
+
+    function renderTableHeaders(displayHeaders){
+      const dataTableHeaders = document.getElementById('data-table-headers');
+      if(!dataTableHeaders) return;
+      dataTableHeaders.innerHTML = '';
+      const headers = ['狀態','刪除', ...displayHeaders];
+      headers.forEach(h=>{
+        const th = document.createElement('th');
+        th.className = 'sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap'; 
+        th.textContent = h;
+        dataTableHeaders.appendChild(th);
+      });
+    }
+
+    function renderLongTermTableHeaders(displayHeaders){
+      const longTerm_dataTableHeaders = document.getElementById('longTerm_data-table-headers');
+      if(!longTerm_dataTableHeaders) return;
+      longTerm_dataTableHeaders.innerHTML = '';
+      const headers = ['狀態','刪除', ...displayHeaders];
+      headers.forEach(h=>{
+        const th = document.createElement('th');
+        th.className = 'sticky top-0 z-30 bg-gray-100 text-gray-900 font-bold px-4 py-3 border-b-2 border-gray-200 whitespace-nowrap';
+        th.textContent = h;
+        longTerm_dataTableHeaders.appendChild(th);
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('data-table-body');
+      const noData = document.getElementById('noDataText');
+      const tableContainer = document.getElementById('dataTableContainer');
+      tbody.innerHTML = '';
+      const term = document.getElementById('searchInput').value.trim().toLowerCase();
+      let filtered = allOrders.filter(o => {
+        const status = getStatus(o);
+        if (currentFilter !== 'all' && status.key !== currentFilter) return false;
+        if (!term) return true;
+        return Object.values(o).some(val => String(val).toLowerCase().includes(term));
+      });
+      filtered.sort((a,b) => {
+         const ta = new Date(a['最後更新時間'] || a['建立日期'] || 0).getTime();
+         const tb = new Date(b['最後更新時間'] || b['建立日期'] || 0).getTime();
+         return tb - ta;
+      });
+      
+      if(filtered.length === 0) { 
+        noData.classList.remove('hidden'); 
+        tableContainer.classList.add('hidden'); // Hide table when empty
+        return; 
+      }
+      else { 
+        noData.classList.add('hidden'); 
+        tableContainer.classList.remove('hidden'); // Show table when has data
+      }
+
+      filtered.forEach(order => {
+        const tr = document.createElement('tr');
+        
+        // --- 核心邏輯：判斷 Line通知 決定背景色 ---
+        const isLineNotify = isChecked(order['Line通知']);
+        
+        if (isLineNotify) {
+            // 打勾：淺綠色，並加上 hover 效果
+            tr.className = 'bg-green-100 hover:bg-green-200 cursor-pointer transition-colors border-l-4 border-green-400';
+        } else {
+            // 沒打勾：維持原本的斑馬紋 (一行白、一行灰)
+            tr.className = 'bg-white even:bg-gray-50 hover:bg-indigo-50 cursor-pointer transition-colors';
+        }
+
+        tr.onclick = (e) => { if(e.target.closest('button')) return; openEditModal(order); };
+        const status = getStatus(order);
+        
+        const productA = order['客訂商品A'] ? `[${order['客訂商品A']}]${order['A商品規格'] ? `(${order['A商品規格']})` : ''} ${order['A數量'] ? 'x' + order['A數量'] : ''}` : '';
+        const productB = order['客訂商品B'] ? `[${order['客訂商品B']}]${order['B商品規格'] ? `(${order['B商品規格']})` : ''} ${order['B數量'] ? 'x' + order['B數量'] : ''}` : '';
+        
+        const formatMulti = (val) => {
+            if(!val) return '';
+            const parts = String(val).split(/[,;，\s]+/).filter(Boolean);
+            if(parts.length === 0) return '';
+            return parts.map(d => {
+                const dobj = new Date(d);
+                if(isNaN(dobj.getTime())) return d;
+                return `${pad(dobj.getMonth()+1)}/${pad(dobj.getDate())}`;
+            }).join(', ');
+        };
+
+        const formatDateMMDD = (val) => {
+            if(!val) return '';
+            const d = new Date(val);
+            if(isNaN(d.getTime())) return String(val).substring(0, 10);
+            return `${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+        }
+
+        let dateDisplay = '';
+        if(order['採購日期']) dateDisplay += `<div class="text-xs text-blue-600">採購: ${formatDateMMDD(order['採購日期'])}</div>`;
+        if(order['到貨日期']) dateDisplay += `<div class="text-xs text-purple-600">到貨: ${formatDateMMDD(order['到貨日期'])}</div>`;
+        
+        if(order['未接電話日期']) dateDisplay += `<div class="text-xs text-red-500">未接: ${formatMulti(order['未接電話日期'])}</div>`;
+        if(order['通知日期']) dateDisplay += `<div class="text-xs text-orange-600">通知: ${formatMulti(order['通知日期'])}</div>`;
+        
+        if(order['取走日期']) dateDisplay += `<div class="text-xs text-green-600">取走: ${formatDateMMDD(order['取走日期'])}</div>`;
+        if(!dateDisplay) dateDisplay = `<div class="text-xs text-gray-400">${formatDateMMDD(order['建立日期'])}</div>`;
+
+        let phoneDisplay = order['電話'] || order['連絡電話'] || '';
+        if (phoneDisplay) {
+             phoneDisplay = formatPhone(phoneDisplay);
+        }
+
+        const isPaid = isChecked(order['付清'] || order['paid']);
+        const paidDisplay = isPaid ? '<span class="text-green-600 font-bold">是</span>' : '<span class="text-gray-400">否</span>';
+
+        const createdDate = formatDateMMDD(order['建立日期'] || order['creationDate'] || order['建立時間']);
+        const updatedDate = formatDateMMDD(order['最後更新時間']);
+
+        tr.innerHTML = `
+          <td><span class="status-badge ${status.class}">${status.label}</span></td>
+          <td class="text-center"> <button type="button" class="btn bg-red-100 text-red-600 px-2 py-1 text-xs" onclick="deleteRow(${order['__row']})">刪除</button>
+          </td>
+          <td data-label="姓名" class="font-medium text-gray-900">${order['姓名'] || '未知'}</td>
+          <td data-label="手機號碼">${phoneDisplay}</td>
+          <td data-label="商品" class="mobile-full-width">
+             <div class="font-medium text-indigo-900">${productA}</div>
+             ${productB ? `<div class="font-medium text-indigo-900 mt-1">${productB}</div>` : ''}
+          </td>
+          <td data-label="進度" class="text-gray-500">
+             ${dateDisplay || '-'}
+          </td>
+          <td data-label="付清">${paidDisplay}</td>
+          <td data-label="建立日期" class="text-xs text-gray-400">${createdDate}</td>
+          <td data-label="最後更新" class="text-xs text-gray-400">${updatedDate}</td>
+        `;
+        
+        const delBtn = tr.querySelector('button[onclick^="deleteRow"]');
+        if(delBtn) {
+            delBtn.onclick = (e) => { e.stopPropagation(); if(confirm('刪除?')) deleteRow(order['__row']); };
+            delBtn.removeAttribute('onclick');
+        }
+
+        tbody.appendChild(tr);
+      });
+    }
+    
+    function renderLongTermTable() {
+      const tbody = document.getElementById('longTerm_data-table-body');
+      const noData = document.getElementById('longTerm_noDataText');
+      const tableContainer = document.getElementById('longTerm_dataTableContainer');
+      tbody.innerHTML = '';
+      const term = document.getElementById('longTerm_searchInput').value.trim().toLowerCase();
+      let filtered = allLongTermOrders.filter(o => {
+        if (!term) return true;
+        // Search Filter fix: search all values
+        return Object.values(o).some(val => String(val).toLowerCase().includes(term));
+      });
+      
+      if(filtered.length === 0) { 
+        noData.classList.remove('hidden'); 
+        tableContainer.classList.add('hidden'); // Hide table when empty
+        return; 
+      }
+      else { 
+        noData.classList.add('hidden'); 
+        tableContainer.classList.remove('hidden'); // Show table when has data
+      }
+      
+      filtered.forEach(order => {
+        const tr = document.createElement('tr');
+        tr.className = 'bg-white even:bg-gray-50 hover:bg-blue-50 cursor-pointer transition-colors';
+        tr.onclick = (e) => { if(e.target.closest('button')) return; openLongTermEditModal(order); };
+        const status = getStatus(order);
+        
+        const productA = order['客訂商品A'] ? `[${order['客訂商品A']}]${order['A商品規格'] ? `(${order['A商品規格']})` : ''} ${order['A數量'] ? 'x' + order['A數量'] : ''}` : '';
+        const productB = order['客訂商品B'] ? `[${order['客訂商品B']}]${order['B商品規格'] ? `(${order['B商品規格']})` : ''} ${order['B數量'] ? 'x' + order['B數量'] : ''}` : '';
+
+        const formatMulti = (val) => {
+            if(!val) return '';
+            const parts = String(val).split(/[,;，\s]+/).filter(Boolean);
+            if(parts.length === 0) return '';
+            return parts.map(d => {
+                const dobj = new Date(d);
+                if(isNaN(dobj.getTime())) return d;
+                return `${pad(dobj.getMonth()+1)}/${pad(dobj.getDate())}`;
+            }).join(', ');
+        };
+
+        const formatDateMMDD = (val) => {
+            if(!val) return '';
+            const d = new Date(val);
+            if(isNaN(d.getTime())) return String(val).substring(0, 10);
+            return `${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+        }
+
+        let dateDisplay = '';
+        if(order['採購日期']) dateDisplay += `<div class="text-xs text-blue-600">採購: ${formatMulti(order['採購日期'])}</div>`;
+        if(order['到貨日期']) dateDisplay += `<div class="text-xs text-purple-600">到貨: ${formatMulti(order['到貨日期'])}</div>`;
+        
+        if(order['未接電話日期']) dateDisplay += `<div class="text-xs text-red-500">未接: ${formatMulti(order['未接電話日期'])}</div>`;
+        if(order['通知日期']) dateDisplay += `<div class="text-xs text-orange-600">通知: ${formatMulti(order['通知日期'])}</div>`;
+        
+        if(order['取走日期']) dateDisplay += `<div class="text-xs text-green-600">取走: ${formatMulti(order['取走日期'])}</div>`;
+        
+        let phoneDisplay = order['電話'] || order['連絡電話'] || '';
+        if (phoneDisplay) {
+             phoneDisplay = formatPhone(phoneDisplay);
+        }
+
+        const isPaid = isChecked(order['付清'] || order['paid']);
+        const paidDisplay = isPaid ? '<span class="text-green-600 font-bold">是</span>' : '<span class="text-gray-400">否</span>';
+        const createdDate = formatDateMMDD(order['建立日期'] || order['creationDate'] || order['建立時間']);
+        const updatedDate = formatDateMMDD(order['最後更新時間']);
+
+        tr.innerHTML = `
+          <td><span class="status-badge ${status.class}">${status.label}</span></td>
+          <td class="text-center"> <button type="button" class="btn bg-red-100 text-red-600 px-2 py-1 text-xs" onclick="deleteRow(${order['__row']})">刪除</button>
+          </td>
+          <td data-label="姓名" class="font-medium text-gray-900">${order['姓名'] || '未知'}</td>
+          <td data-label="手機號碼">${phoneDisplay}</td>
+          <td data-label="商品" class="mobile-full-width">
+             <div class="font-medium text-blue-900">${productA}</div>
+             ${productB ? `<div class="font-medium text-blue-900 mt-1">${productB}</div>` : ''}
+          </td>
+          <td data-label="進度" class="text-gray-500">${dateDisplay || '-'}</td>
+          <td data-label="付清">${paidDisplay}</td>
+          <td data-label="建立日期" class="text-xs text-gray-400">${createdDate}</td>
+          <td data-label="最後更新" class="text-xs text-gray-400">${updatedDate}</td>
+        `;
+
+        const delBtn = tr.querySelector('button[onclick^="deleteRow"]');
+        if(delBtn) {
+            delBtn.onclick = (e) => { e.stopPropagation(); if(confirm('刪除?')) deleteRow(order['__row']); };
+            delBtn.removeAttribute('onclick');
+        }
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Modal Helpers
+    
+    function setInputDate(id, val) {
+       const el = document.getElementById(id);
+       if(!val) { el.value = ''; return; }
+       const parts = String(val).split(/[,;，\s]+/);
+       const d = new Date(parts[parts.length-1]);
+       if(!isNaN(d)) { el.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+    }
+
+    function openEditModal(order) {
+       const editModal = document.getElementById('editModalBackdrop');
+       document.getElementById('editRowIndex').value = order['__row'];
+       document.getElementById('editCustomerID').value = order['客號']||'';
+       document.getElementById('editCustomerName').value = order['姓名']||'';
+       document.getElementById('editPhone').value = order['電話']||order['連絡電話']||'';
+       document.getElementById('editProductAName').value = order['客訂商品A']||'';
+       document.getElementById('editProductASpec').value = order['A商品規格']||'';
+       document.getElementById('editProductAQty').value = order['A數量']||'';
+       document.getElementById('editProductBName').value = order['客訂商品B']||'';
+       document.getElementById('editProductBSpec').value = order['B商品規格']||'';
+       document.getElementById('editProductBQty').value = order['B數量']||'';
+       document.getElementById('editPaid').checked = (order['paid'] === '是' || order['paid'] === true || order['付清'] === '是');
+       document.getElementById('editNotes').value = order['備註']||'';
+       
+       // Populate LINE info
+       document.getElementById('editLineName').value = order['LINE名稱'] || '';
+       document.getElementById('editLineNotify').checked = isChecked(order['Line通知']);
+       
+       setInputDate('editPurchaseDate', order['採購日期']);
+       setInputDate('editArrivalDate', order['到貨日期']);
+       setInputDate('editPickupDate', order['取走日期']);
+       
+       // Populate Tags for normal edit modal
+       try {
+         const missed = parseMultiDateStringToArray(order['未接電話日期']);
+         const notify = parseMultiDateStringToArray(order['通知日期']);
+         editMissedCtrl.setItems(missed);
+         editNotifyCtrl.setItems(notify);
+       } catch(e) { console.warn(e); }
+
+       editModal.classList.remove('hidden');
+    }
+    
+    function openLongTermEditModal(order) {
+       const longTermEditModal = document.getElementById('longTerm_editModalBackdrop');
+       document.getElementById('longTerm_editRowIndex').value = order['__row'];
+       document.getElementById('longTerm_editCustomerID').value = order['客號']||'';
+       document.getElementById('longTerm_editCustomerName').value = order['姓名']||'';
+       document.getElementById('longTerm_editPhone').value = order['電話']||order['連絡電話']||'';
+       document.getElementById('longTerm_editProductAName').value = order['客訂商品A']||'';
+       document.getElementById('longTerm_editProductASpec').value = order['A商品規格']||'';
+       document.getElementById('longTerm_editProductAQty').value = order['A數量']||'';
+       document.getElementById('longTerm_editProductBName').value = order['客訂商品B']||'';
+       document.getElementById('longTerm_editProductBSpec').value = order['B商品規格']||'';
+       document.getElementById('longTerm_editProductBQty').value = order['B數量']||'';
+       document.getElementById('longTerm_editPaid').checked = (order['paid'] === '是' || order['paid'] === true || order['付清'] === '是');
+       document.getElementById('longTerm_editStoreTransfer').value = order['分店調撥'] || '';
+       document.getElementById('longTerm_editNotes').value = order['備註'] || order['說明'] || '';
+       
+       try{
+        const purchase = parseMultiDateStringToArray(order['採購日期']);
+        const arrival = parseMultiDateStringToArray(order['到貨日期']);
+        const pickup = parseMultiDateStringToArray(order['取走日期']);
+        const missed = parseMultiDateStringToArray(order['未接電話日期']);
+        const notify = parseMultiDateStringToArray(order['通知日期']);
+        longTerm_editPurchaseCtrl.setItems(purchase);
+        longTerm_editArrivalCtrl.setItems(arrival);
+        longTerm_editPickupCtrl.setItems(pickup);
+        longTerm_editMissedCtrl.setItems(missed);
+        longTerm_editNotifyCtrl.setItems(notify);
+      }catch(e){ console.warn(e); }
+
+       longTermEditModal.classList.remove('hidden');
+    }
+    
+    function openBlacklistEditModal(row) {
+       const blacklistEditModal = document.getElementById('blacklist_editModalBackdrop');
+       document.getElementById('blacklist_editRowIndex').value = row['__row'];
+       const data = resolveBlacklistRowData(row);
+       document.getElementById('bl_edit_phone').value = data.phone;
+       document.getElementById('bl_edit_name').value = data.name;
+       document.getElementById('bl_edit_custID').value = data.id;
+       document.getElementById('bl_edit_reason').value = data.reason;
+       
+       // === 關鍵修正：將資料的日期設定到輸入框 ===
+       document.getElementById('bl_edit_date').value = toDateOnly(data.date);
+       
+       // If backend returns '備註' or 'Note', map it
+       let note = row['備註'] || row['Note'] || '';
+       document.getElementById('bl_edit_notes').value = note;
+       
+       blacklistEditModal.classList.remove('hidden');
+    }
+
+    function renderHistoryTable(headers, rows) {
+        const historyTableHeaders = document.getElementById('history-table-headers');
+        const historyTableBody = document.getElementById('history-table-body');
+        
+        historyTableHeaders.innerHTML = '';
+        
+        // 定義要顯示的欄位關鍵字
+        const displayCols = ['歸檔日期', '客號', '姓名', '電話', '連絡電話', '客訂商品A', '商品', '取走日期', '備註'];
+        
+        // 建立「欄位名稱」清單 (取代索引，避免錯位)
+        const colNames = [];
+        
+        headers.forEach(h => {
+            // 判斷此標題是否包含我們要顯示的關鍵字
+            const shouldShow = displayCols.some(k => h.includes(k)) || h.includes('Date') || h.includes('日期');
+            if(shouldShow) { 
+                const th = document.createElement('th');
+                th.textContent = h;
+                th.className = "sticky top-0 bg-gray-100 px-4 py-2 border-b font-bold whitespace-nowrap";
+                historyTableHeaders.appendChild(th);
+                colNames.push(h); // 記錄標題名稱
+            }
+        });
+        
+        // 渲染資料列
+        rows.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-gray-50 border-b";
+            
+            // 依據 colNames (標題名稱) 來抓取對應資料
+            colNames.forEach(key => {
+                const td = document.createElement('td');
+                td.className = "px-4 py-2 whitespace-nowrap text-sm";
+                
+                let val = row[key]; // 直接用 Key 取值，最準確
+                
+                // 日期簡單格式化
+                if(typeof val === 'string' && val.includes('T') && val.includes(':')) {
+                    val = val.split('T')[0]; 
+                }
+                
+                td.textContent = (val !== undefined && val !== null) ? val : '-';
+                tr.appendChild(td);
+            });
+            historyTableBody.appendChild(tr);
+        });
+    }
+
+    function renderBlacklistTable() {
+      const tbody = document.getElementById('blacklist_data-table-body');
+      const noData = document.getElementById('blacklist_noDataText');
+      const tableContainer = document.getElementById('blacklist_dataTableContainer');
+      tbody.innerHTML = '';
+      const term = document.getElementById('blacklist_searchInput').value.trim().toLowerCase();
+      
+      const filtered = allBlacklistData.filter(row => {
+         if(!term) return true;
+         // Search all values in row
+         return Object.values(row).some(val => String(val).toLowerCase().includes(term));
+      });
+      
+      if(filtered.length === 0) { 
+        noData.classList.remove('hidden'); 
+        tableContainer.classList.add('hidden'); 
+        return; 
+      }
+      else { 
+        noData.classList.add('hidden'); 
+        tableContainer.classList.remove('hidden'); 
+      }
+      
+      filtered.forEach(row => {
+         const tr = document.createElement('tr');
+         tr.className = 'hover:bg-red-50 cursor-pointer';
+         tr.onclick = (e) => { if(e.target.closest('button')) return; openBlacklistEditModal(row); };
+         
+         const data = resolveBlacklistRowData(row);
+         const dateVal = formatFieldValueIfDate('日期', data.date);
+         const phoneVal = formatPhone(data.phone);
+
+         // === 修正：轉換店別代碼為中文店名 ===
+         let displayStoreName = data.store;
+         if (allStoresCache && allStoresCache.length > 0) {
+             const match = allStoresCache.find(s => s.code === data.store);
+             if (match && match.name) displayStoreName = match.name;
+         }
+
+         tr.innerHTML = `
+           <td class="status-badge missed">黑名單</td>
+           <td class="text-center"> <button type="button" class="btn bg-red-100 text-red-600 px-2 py-1 text-xs" onclick="event.stopPropagation(); deleteBlacklistRow(${row['__row']})">刪除</button>
+           </td>
+           <td data-label="客號">${data.id}</td>
+           <td data-label="姓名">${data.name}</td>
+           <td data-label="電話">${phoneVal}</td>
+           <td data-label="店別">${displayStoreName}</td>
+           <td data-label="原因" class="text-red-600">${data.reason}</td>
+           <td data-label="日期">${dateVal}</td>
+         `;
+         
+         tbody.appendChild(tr);
+      });
+    }
+</script>

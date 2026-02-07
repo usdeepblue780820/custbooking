@@ -1,0 +1,83 @@
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyfDwaVTkHD-HGtY-6MzxscARnxwML9j1Ejn4v5cvPCAlgIPNRNkuU07r_61OBEVAYK/exec";
+
+    // Helper Functions
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function todayLocalForInput() { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+    function digitsOnly(s){ return String(s||'').replace(/\D/g,''); }
+    function parseMultiDateStringToArray(dateString) {
+        if (!dateString || typeof dateString !== 'string') return [];
+        return dateString.split(/[,;，\s]+/).map(s => toDateOnly(s)).filter(Boolean);
+    }
+    function toDateOnly(val) {
+      if (!val && val !== 0) return '';
+      const s = String(val).trim();
+      const m1 = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+      if (m1) {
+        return `${m1[1]}-${String(m1[2]).padStart(2,'0')}-${String(m1[3]).padStart(2,'0')}`;
+      }
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+      }
+      return '';
+    }
+    
+    function isChecked(value) {
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'string') {
+            const s = value.toLowerCase().trim();
+            return s === '是' || s === 'true' || s === '1' || s === 'yes';
+        }
+        return false;
+    }
+    
+    function showTopMessage(txt, isError=false){
+      const topMessage = document.getElementById('top-message');
+      if(!txt){ topMessage.classList.add('hidden'); topMessage.textContent=''; return; }
+      topMessage.textContent = txt;
+      topMessage.classList.remove('hidden');
+      topMessage.style.color = isError ? '#b91c1c' : '#065f46';
+    }
+    
+    function formatFieldValueIfDate(header, val) {
+       // Simple passthrough or formatting if needed for blacklist
+       if(!val) return '';
+       if (header.includes('日期') || header.includes('Date')) {
+           return formatDateShort(val);
+       }
+       return val;
+    }
+    
+    function getSelectedStoreName() {
+        const storeSelect = document.getElementById('storeSelect');
+        const opt = storeSelect.options[storeSelect.selectedIndex];
+        return opt ? (opt.dataset.name || opt.text) : '';
+    }
+
+    function getStatus(order) {
+       if(order['取走日期']) return { key: '已取貨', label: '已取貨', class: 'closed' };
+       if(order['通知日期']) return { key: '已通知', label: '已通知', class: 'notified' };
+       if(order['未接電話日期']) return { key: '未接', label: '未接', class: 'missed' };
+       if(order['到貨日期']) return { key: '已到貨', label: '已到貨', class: 'arrived' };
+       if(order['採購日期']) return { key: '已採購', label: '已採購', class: 'purchase' };
+       return { key: '未處理', label: '未處理', class: 'pending' };
+    }
+
+    function formatPhone(rawVal){
+      if(rawVal===undefined || rawVal===null) return '';
+      const s = String(rawVal).trim();
+      if(s.startsWith('0')) return s;
+      if(/^\d{9}$/.test(s)) return '0'+s;
+      return s;
+    }
+
+    function formatDateShort(dateStr) {
+      if(!dateStr) return '';
+      const parts = String(dateStr).split(/[,;，\s]+/);
+      const last = parts[parts.length-1]; 
+      const d = new Date(last);
+      if(isNaN(d.getTime())) return `${pad(d.getMonth()+1)}/${pad(d.getDate())}`; // Fallback if parse fails but logic was tried
+      return `${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+    }
+</script>
